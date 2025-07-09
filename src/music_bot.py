@@ -5,6 +5,9 @@ from telebot import types
 from telebot.util import quick_markup
 from dotenv import load_dotenv
 
+API_TOKEN = ''
+MUSIC_DIRECTORY = 'D:\Music'
+
 load_dotenv() # load local .env file with bot token
 
 def get_bot_token() -> str:
@@ -32,7 +35,7 @@ def send_help(message):
 def play_music(message):
     """Play music from the local directory."""
     current_dir = os.getcwd()
-    song_dir = '/home/user/Music'  # Update this path as per your system
+    song_dir = MUSIC_DIRECTORY  # Update this path as per your system
     for file in os.listdir(song_dir):
         if file.endswith(".mp3"):
             pygame.mixer.music.load(os.path.join(song_dir, file))
@@ -44,7 +47,7 @@ def play_music(message):
 def play_next_track(message):
     """Play the next track in the directory."""
     current_dir = os.getcwd()
-    song_dir = '/home/user/Music'  # Update this path as per your system
+    song_dir = MUSIC_DIRECTORY  # Update this path as per your system
     for file in os.listdir(song_dir):
         if file.endswith(".mp3"):
             pygame.mixer.music.load(os.path.join(song_dir, file))
