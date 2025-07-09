@@ -1,5 +1,4 @@
 from telebot import TeleBot
-import pygame as pg
 import os
 from telebot import types
 from telebot.util import quick_markup
@@ -24,10 +23,6 @@ FILES_DIRECTORY = get_music_directory()
 bot = MusicPollBot(API_TOKEN)
 bot.music_directory = FILES_DIRECTORY
 
-# Initialize pygame mixer for playing music
-pg.init()
-pg.mixer.init()
-
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     """Send a message when the command /start is issued."""
@@ -41,42 +36,34 @@ def send_help(message):
 @bot.message_handler(commands=['play'])
 def play_music(message):
     """Play music from the local directory."""
-    for file in os.listdir(bot.music_directory):
-        if file.endswith(".mp3"):
-            pg.mixer.music.load(os.path.join(bot.music_directory, file))
-            pg.mixer.music.play()
-            bot.reply_to(message, f"Now playing: {file}")
+    bot.playlist = os.listdir(bot.music_directory)
+    for file in bot.playlist:
+        if bot.play(file):
+            bot.reply_to(message, f"Now playing: {bot.current_file}")
             break
 
 @bot.message_handler(commands=['pause'])
 def pause_music(message):
-    pass
+    bot.pause()
+    bot.reply_to(message, f"Paused: {bot.current_file}")
 
 @bot.message_handler(commands=['next'])
 def play_next_track(message):
     """Play the next track in the directory."""
-    for file in os.listdir(bot.music_directory):
-        if file.endswith(".mp3"):
-            pg.mixer.music.load(os.path.join(bot.music_directory, file))
-            pg.mixer.music.play()
-            bot.reply_to(message, f"Now playing: {file}")
-            break
+    bot.next()        
+    bot.reply_to(message, f"Now playing: {bot.current_file}")
 
 @bot.message_handler(commands=['up'])
 def increase_volume(message):
     """Increase the volume."""
-    current_volume = pg.mixer.get_volume() * 100
-    new_volume = min(100, current_volume + 10)
-    pg.mixer.music.set_volume(new_volume / 100.0)
-    bot.reply_to(message, f"Volume increased to: {new_volume}%")
+    bot.up()
+    bot.reply_to(message, f"Volume increased to: {bot.current_volume}%")
 
 @bot.message_handler(commands=['down'])
 def decrease_volume(message):
     """Decrease the volume."""
-    current_volume = pg.mixer.get_volume() * 100
-    new_volume = max(0, current_volume - 10)
-    pg.mixer.music.set_volume(new_volume / 100.0)
-    bot.reply_to(message, f"Volume decreased to: {new_volume}%")
+    bot.down()
+    bot.reply_to(message, f"Volume decreased to: {bot.current_volume}%")
 
 # Run the bot using a loop (or use an event-driven method if you're in a non-blocking environment)
 def main():
