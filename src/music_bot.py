@@ -69,8 +69,13 @@ def decrease_volume(message):
     bot.reply_to(message, f"Volume decreased to: {new_volume}%")
 
 # Run the bot using a loop (or use an event-driven method if you're in a non-blocking environment)
-while True:
-    try:
-        bot.poll_single_message()
-    except Exception as e:
-        print(f"An error occurred: {e}")
+def main():
+    while True:
+        try:
+            bot.polling(none_stop=True)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+if __name__ == '__main__':
+    remove_keyboard = types.ReplyKeyboardRemove()
+    main()
