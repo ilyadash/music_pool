@@ -37,10 +37,9 @@ def send_help(message):
 def play_music(message):
     """Play music from the local directory."""
     bot.playlist = os.listdir(bot.music_directory)
-    for file in bot.playlist:
-        if bot.play(file):
-            bot.reply_to(message, f"Now playing: {bot.current_file}")
-            break
+    bot.play_all()
+    bot.reply_to(message, f"Now playing: {bot.current_file}")
+    #break
 
 @bot.message_handler(commands=['pause'])
 def pause_music(message):
