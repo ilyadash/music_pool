@@ -2,6 +2,7 @@ import telebot as tb
 import pygame as pg
 import os
 import random as rnd
+from tinytag import TinyTag
 
 VOLUME_INCRIMENT = 10
 SONG_END = pg.USEREVENT + 1
@@ -25,6 +26,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.current_track_number = 0
         self.current_volume = pg.mixer.music.get_volume() * 100
         self.shuffled_playlist = False
+        self.track_tags = None
         self.statistics = {
             "tracks": {
                 "played": 0,
@@ -46,27 +48,22 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         return is_ok
     def play_all(self) -> None:
         self.current_track_number = 0
-        if self.file_is_ok(self.playlist[self.current_track_number]):
-            self.current_file = self.playlist[self.current_track_number]
+        if self.set_current_file(self.playlist[self.current_track_number]):
             self.play()
             pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
             self.current_track_number += 1
         while True:
             for event in pg.event.get():
                 if event.type == SONG_END:
-                    if self.file_is_ok(self.playlist[self.current_track_number]):
-                        self.current_track_number += 1
-                        self.current_file = self.playlist[self.current_track_number]
+                    if self.set_current_file(self.playlist[self.current_track_number+1]):
                         self.play()
                         pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
     def play(self, file:str='') -> bool:
         self.playing = False
         if file == '':
             file = self.current_file
-        if self.file_is_ok(file):
-            self.current_track_number = self.playlist.index(file)
-            self.playing = True 
-            self.current_file = file  
+        if self.set_current_file(file):
+            self.playing = True   
             pg.mixer.music.load(os.path.join(self.music_directory, file))
             pg.mixer.music.play()
         return self.playing
@@ -89,7 +86,14 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         pg.mixer.music.set_volume(new_volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
     def set_has_started(self, in_state: bool) -> None:
-        self.has_started = in_state   
+        self.has_started = in_state  
+    def set_current_file(self, file) -> bool:
+        if self.file_is_ok(file):
+            self.current_file = file
+            self.current_track_number = self.playlist.index(file)    
+            self.track_tags = TinyTag.get(os.path.join(self.music_directory, file)) 
+            return True
+        return False
     def clear_statistics(self):
         self.statistics = {
             "tracks": {
