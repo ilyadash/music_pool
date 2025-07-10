@@ -4,6 +4,7 @@ from telebot import types
 #from telebot.util import quick_markup
 from dotenv import load_dotenv
 from music_poll_bot import MusicPollBot
+import time
 
 API_TOKEN = ''
 FILES_DIRECTORY = ''
@@ -51,7 +52,7 @@ def pause_music(message):
 def play_next_track(message):
     """Play the next track in the directory."""
     bot.next()        
-    bot.reply_to(message, f"Now playing: {bot.current_file}")
+    bot.reply_to(message, f"Now playing\nFile name: {bot.current_file}\nTitle: {bot.track_tags.title}\nArtist: {bot.track_tags.artist}\nAlbum: {bot.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(bot.track_tags.duration))}\n")
 
 @bot.message_handler(commands=['up'])
 def increase_volume(message):
