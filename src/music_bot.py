@@ -37,6 +37,7 @@ def send_help(message):
 def play_music(message):
     """Play music from the local directory."""
     bot.playlist = os.listdir(bot.music_directory)
+    bot.shuffle_playlist()
     bot.play_all()
     bot.reply_to(message, f"Now playing: {bot.current_file}")
     #break

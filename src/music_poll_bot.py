@@ -21,10 +21,10 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.playing = False
         self.music_directory = ''
         self.playlist = []
-        self.playlist_len = 0
         self.current_file = ''
         self.current_track_number = 0
         self.current_volume = pg.mixer.music.get_volume() * 100
+        self.shuffled_playlist = False
         self.statistics = {
             "tracks": {
                 "played": 0,
@@ -35,6 +35,9 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
                 "passed": 0
             }
         }
+    def shuffle_playlist(self) -> None:
+        self.shuffled_playlist = True
+        rnd.shuffle(self.playlist)
     def file_is_ok(self, file) -> bool:
         is_ok = False
         if str(type(file)) == "<class 'str'>":
@@ -60,7 +63,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.playing = False
         if file == '':
             file = self.current_file
-        elif self.file_is_ok(file):
+        if self.file_is_ok(file):
             self.current_track_number = self.playlist.index(file)
             self.playing = True 
             self.current_file = file  
