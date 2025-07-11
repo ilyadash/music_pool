@@ -18,7 +18,7 @@ bot.volume_increment = env.get_volume_increment()
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     """Send a message when the command /start is issued."""
-    bot.reply_to(message, "Welcome! I can play music from your local directory. Use /play to start.")
+    bot.reply_to(message, "Welcome! I can play music from your local directory. Use /play to start or /help for help.")
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
@@ -29,20 +29,16 @@ def send_help(message):
 def play_music(message):
     """Play music from the local directory."""
     bot.shuffle_playlist()
-    bot.play_all()
-    bot.reply_to(message, f"Now playing: {bot.current_file}")
-    #break
+    bot.play_all(message)
 
 @bot.message_handler(commands=['pause'])
 def pause_music(message):
-    bot.pause()
-    bot.reply_to(message, f"Paused: {bot.current_file}")
+    bot.pause(message)
 
 @bot.message_handler(commands=['next'])
 def play_next_track(message):
     """Play the next track in the directory."""
-    bot.play_next()        
-    bot.reply_to(message, f"Now playing\n"+bot.get_info_for_current_file())
+    bot.play_next(message)        
 
 @bot.message_handler(commands=['up'])
 def increase_volume(message):
@@ -55,6 +51,10 @@ def decrease_volume(message):
     """Decrease the volume."""
     bot.down()
     bot.reply_to(message, f"Volume decreased to: {bot.current_volume}%")
+
+@bot.message_handler(commands=['stop'])
+def stop_play(message):
+    bot.stop(message)   
 
 # Run the bot using a loop (or use an event-driven method if you're in a non-blocking environment)
 def main():

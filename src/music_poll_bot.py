@@ -11,9 +11,6 @@ SONG_END = pg.USEREVENT + 1
 pg.init()
 pg.mixer.init()
 
-def get_bot_token() -> str:
-    return os.environ.get('BOT_TOKEN','')
-
 class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my additional data and methods
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,19 +46,24 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             if extension in self.ok_extensions: 
                 is_ok = True
         return is_ok
-    def play_all(self) -> None:
+    def play_all(self, message_reply_to=None) -> None:
         self.current_track_number = 0
         if self.set_current_file(self.playlist[self.current_track_number]):
             self.play()
             pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
             self.current_track_number += 1
+            if message_reply_to != None:
+                self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")    
+                self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
         while True:
             for event in pg.event.get():
                 if event.type == SONG_END:
                     if self.set_current_file(self.playlist[self.current_track_number+1]):
                         self.play()
                         pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
-    def play(self, file:str='') -> bool:
+                        if message_reply_to != None: 
+                            self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
+    def play(self, file:str='', message_reply_to=None) -> bool:
         self.playing = False
         if file == '':
             file = self.current_file
@@ -69,17 +71,25 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             self.playing = True   
             pg.mixer.music.load(os.path.join(self.music_directory, file))
             pg.mixer.music.play()
+            if message_reply_to != None:
+                self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
         return self.playing
-    def pause(self) -> None:
+    def pause(self, message_reply_to=None) -> None:
         pg.mixer.music.pause()
         self.playing = False
-    def stop(self) -> None:
+        if message_reply_to != None:
+            self.reply_to(message_reply_to, f"Paused: {self.current_file}")
+    def stop(self, message_reply_to=None) -> None:
         pg.mixer.music.stop()
         self.playing = False
-    def play_next(self) -> None:
+        if message_reply_to != None:
+            self.reply_to(message_reply_to, f"Stopped playing music")
+    def play_next(self, message_reply_to=None) -> None:
         self.current_track_number += 1
         self.current_file = self.playlist[self.current_track_number]
         self.play(self.current_file)
+        if message_reply_to != None:
+            self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
     def set_volume(self, volume) -> None:
         pg.mixer.music.set_volume(int(volume / 100.0))
         self.current_volume = pg.mixer.music.get_volume() * 100
