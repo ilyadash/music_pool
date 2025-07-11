@@ -91,7 +91,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         if message_reply_to != None:
             self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
     def set_volume(self, volume) -> None:
-        pg.mixer.music.set_volume(int(volume / 100.0))
+        pg.mixer.music.set_volume(volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
     def up(self) -> None:
         new_volume = int(min(100, self.current_volume + self.volume_increment))
