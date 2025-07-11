@@ -14,3 +14,6 @@ def get_music_playlist() -> list[str]:
 
 def get_volume_increment() -> int:
     return int(os.environ.get('VOLUME_INCRIMENT', '10'))
+
+def get_initial_volume() -> int:
+    return int(os.environ.get('INITIAL_VOLUME', '50'))

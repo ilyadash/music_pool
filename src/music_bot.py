@@ -12,6 +12,7 @@ import environment as env
 bot = MusicPollBot(env.get_bot_token())
 bot.music_directory = env.get_music_directory()
 bot.playlist = env.get_music_playlist()
+bot.set_volume(50)
 bot.volume_increment = env.get_volume_increment()
 
 @bot.message_handler(commands=['start'])

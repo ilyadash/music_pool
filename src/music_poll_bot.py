@@ -80,14 +80,15 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.current_track_number += 1
         self.current_file = self.playlist[self.current_track_number]
         self.play(self.current_file)
+    def set_volume(self, volume) -> None:
+        pg.mixer.music.set_volume(int(volume / 100.0))
+        self.current_volume = pg.mixer.music.get_volume() * 100
     def up(self) -> None:
-        new_volume = min(100, self.current_volume + self.volume_increment)
-        pg.mixer.music.set_volume(new_volume / 100.0)
-        self.current_volume = pg.mixer.music.get_volume() * 100
+        new_volume = int(min(100, self.current_volume + self.volume_increment))
+        self.set_volume(new_volume)
     def down(self) -> None:
-        new_volume = max(0, self.current_volume - self.volume_increment)
-        pg.mixer.music.set_volume(new_volume / 100.0)
-        self.current_volume = pg.mixer.music.get_volume() * 100
+        new_volume = int(max(0, self.current_volume - self.volume_increment))
+        self.set_volume(new_volume)
     def set_has_started(self, in_state: bool) -> None:
         self.has_started = in_state  
     def set_current_file(self, file) -> bool:
