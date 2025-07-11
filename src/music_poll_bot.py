@@ -25,7 +25,8 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.ok_extensions: list[str] = ['.mp3', '.m4a']
         self.playlist: list[str] = []
         self.current_file: str = ''
-        self.current_volume = pg.mixer.music.get_volume() * 100
+        self.current_track_number: int = -1
+        self.current_volume = pg.mixer.music.get_volume() * 100 # in %
         self.shuffled_playlist: bool = False
         self.track_tags = None
         self.statistics = {
