@@ -73,7 +73,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
     def stop(self) -> None:
         pg.mixer.music.stop()
         self.playing = False
-    def next(self) -> None:
+    def play_next(self) -> None:
         self.current_track_number += 1
         self.current_file = self.playlist[self.current_track_number]
         self.play(self.current_file)

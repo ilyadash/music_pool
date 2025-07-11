@@ -39,7 +39,7 @@ def pause_music(message):
 @bot.message_handler(commands=['next'])
 def play_next_track(message):
     """Play the next track in the directory."""
-    bot.next()        
+    bot.play_next()        
     bot.reply_to(message, f"Now playing\n"+bot.get_info_for_current_file())
 
 @bot.message_handler(commands=['up'])
