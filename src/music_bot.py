@@ -1,28 +1,17 @@
 from telebot import TeleBot
 import os
 from telebot import types
-#from telebot.util import quick_markup
-from dotenv import load_dotenv
 from music_poll_bot import MusicPollBot
-import time
+import sys
 
-API_TOKEN = ''
-FILES_DIRECTORY = ''
+CURRENT_DIRECTORY: str = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(CURRENT_DIRECTORY, 'utils'))
 
-load_dotenv() # load local .env file with bot token
+import environment as env
 
-def get_bot_token() -> str:
-    return os.environ.get('BOT_TOKEN','')
-
-def get_music_directory() -> str:
-    return os.environ.get('MUSIC_DIRECTORY','')
-
-# Initialize the bot
-API_TOKEN = get_bot_token()
-FILES_DIRECTORY = get_music_directory()
-
-bot = MusicPollBot(API_TOKEN)
-bot.music_directory = FILES_DIRECTORY
+bot = MusicPollBot(env.get_bot_token())
+bot.music_directory = env.get_music_directory()
+bot.playlist = env.get_music_playlist()
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -37,7 +26,6 @@ def send_help(message):
 @bot.message_handler(commands=['play'])
 def play_music(message):
     """Play music from the local directory."""
-    bot.playlist = os.listdir(bot.music_directory)
     bot.shuffle_playlist()
     bot.play_all()
     bot.reply_to(message, f"Now playing: {bot.current_file}")
