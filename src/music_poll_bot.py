@@ -5,7 +5,6 @@ import random as rnd
 from tinytag import TinyTag
 import time
 
-VOLUME_INCRIMENT = 15 #%
 SONG_END = pg.USEREVENT + 1
 
 # Initialize pygame mixer for playing music
@@ -29,6 +28,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.current_volume = pg.mixer.music.get_volume() * 100 # in %
         self.shuffled_playlist: bool = False
         self.track_tags = None
+        self.volume_increment = 10
         self.statistics = {
             "tracks": {
                 "played": 0,
@@ -81,11 +81,11 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.current_file = self.playlist[self.current_track_number]
         self.play(self.current_file)
     def up(self) -> None:
-        new_volume = min(100, self.current_volume + VOLUME_INCRIMENT)
+        new_volume = min(100, self.current_volume + self.volume_increment)
         pg.mixer.music.set_volume(new_volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
     def down(self) -> None:
-        new_volume = max(0, self.current_volume - VOLUME_INCRIMENT)
+        new_volume = max(0, self.current_volume - self.volume_increment)
         pg.mixer.music.set_volume(new_volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
     def set_has_started(self, in_state: bool) -> None:

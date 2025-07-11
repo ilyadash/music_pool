@@ -11,3 +11,6 @@ def get_music_directory() -> str:
 
 def get_music_playlist() -> list[str]:
     return os.listdir(get_music_directory())
+
+def get_volume_increment() -> int:
+    return int(os.environ.get('VOLUME_INCRIMENT', '10'))
