@@ -88,7 +88,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             self.reply_to(message_reply_to, f"Stopped playing music")
     def play_next(self, message_reply_to=None) -> None:
         self.current_track_number += 1
-        if self.set_current_file(self.playlist[self.current_track_number])
+        if self.set_current_file(self.playlist[self.current_track_number]):
             self.play(self.current_file)
             if message_reply_to != None:
                 self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
