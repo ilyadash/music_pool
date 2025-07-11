@@ -55,6 +55,8 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             if message_reply_to != None:
                 self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")    
                 self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
+            self.continue_playing(message_reply_to)
+    def continue_playing(self, message_reply_to=None):
         while True:
             for event in pg.event.get():
                 if event.type == SONG_END:
