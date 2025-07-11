@@ -90,7 +90,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.play(self.current_file)
         if message_reply_to != None:
             self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
-    def set_volume(self, volume) -> None:
+    def set_volume(self, volume) -> None: # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
         pg.mixer.music.set_volume(volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
     def up(self) -> None:
