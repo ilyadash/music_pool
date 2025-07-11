@@ -49,22 +49,19 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
     def play_all(self, message_reply_to=None) -> None:
         self.current_track_number = 0
         if self.set_current_file(self.playlist[self.current_track_number]):
-            self.play()
+            if message_reply_to != None:
+                self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")
+            self.play(self.current_file, message_reply_to=message_reply_to)
             pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
             self.current_track_number += 1
-            if message_reply_to != None:
-                self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")    
-                self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
             self.continue_playing(message_reply_to)
-    def continue_playing(self, message_reply_to=None):
+    def continue_playing(self, message_reply_to=None): #TODO: Fix indefinite playing + ignoring commands while waiting for the end
         while True:
             for event in pg.event.get():
                 if event.type == SONG_END:
                     if self.set_current_file(self.playlist[self.current_track_number+1]):
-                        self.play()
+                        self.play(self.current_file, message_reply_to=message_reply_to)
                         pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
-                        if message_reply_to != None: 
-                            self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
     def play(self, file:str='', message_reply_to=None) -> bool:
         self.playing = False
         if file == '':
@@ -89,9 +86,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
     def play_next(self, message_reply_to=None) -> None:
         self.current_track_number += 1
         if self.set_current_file(self.playlist[self.current_track_number]):
-            self.play(self.current_file)
-            if message_reply_to != None:
-                self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
+            self.play(self.current_file, message_reply_to)
         else:
             if message_reply_to != None:
                 self.reply_to(message_reply_to, f"Skipped playing of "+self.playlist[self.current_track_number])
