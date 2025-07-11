@@ -18,15 +18,14 @@ def get_bot_token() -> str:
 class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my additional data and methods
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.has_started = False # flag that bot is "turned on"
-        self.state = '' # in what regime is bot right now
-        self.playing = False
+        self.has_started: bool = False # flag that bot is "turned on"
+        self.state: str = '' # in what regime is bot right now
+        self.playing: bool = False
         self.music_directory = ''
-        self.playlist = []
-        self.current_file = ''
-        self.current_track_number = 0
+        self.playlist: list[str] = []
+        self.current_file: str = ''
         self.current_volume = pg.mixer.music.get_volume() * 100
-        self.shuffled_playlist = False
+        self.shuffled_playlist: bool = False
         self.track_tags = None
         self.statistics = {
             "tracks": {
@@ -42,7 +41,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.shuffled_playlist = True
         rnd.shuffle(self.playlist)
     def file_is_ok(self, file) -> bool:
-        is_ok = False
+        is_ok: bool = False
         if str(type(file)) == "<class 'str'>":
             if file.endswith(".mp3"): 
                 is_ok = True
