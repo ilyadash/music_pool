@@ -22,6 +22,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.state: str = '' # in what regime is bot right now
         self.playing: bool = False
         self.music_directory = ''
+        self.ok_extensions: list[str] = ['.mp3', '.m4a']
         self.playlist: list[str] = []
         self.current_file: str = ''
         self.current_volume = pg.mixer.music.get_volume() * 100
@@ -43,7 +44,8 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
     def file_is_ok(self, file) -> bool:
         is_ok: bool = False
         if str(type(file)) == "<class 'str'>":
-            if file.endswith(".mp3"): 
+            name, extension = os.path.splitext(file)
+            if extension in self.ok_extensions: 
                 is_ok = True
         return is_ok
     def play_all(self) -> None:
