@@ -4,7 +4,7 @@ import os
 import random as rnd
 from tinytag import TinyTag
 
-VOLUME_INCRIMENT = 10
+VOLUME_INCRIMENT = 15 #%
 SONG_END = pg.USEREVENT + 1
 
 # Initialize pygame mixer for playing music
