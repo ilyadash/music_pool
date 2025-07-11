@@ -40,7 +40,7 @@ def pause_music(message):
 def play_next_track(message):
     """Play the next track in the directory."""
     bot.next()        
-    bot.reply_to(message, f"Now playing\nFile name: {bot.current_file}\nTitle: {bot.track_tags.title}\nArtist: {bot.track_tags.artist}\nAlbum: {bot.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(bot.track_tags.duration))}\n")
+    bot.reply_to(message, f"Now playing\n"+bot.get_info_for_current_file())
 
 @bot.message_handler(commands=['up'])
 def increase_volume(message):

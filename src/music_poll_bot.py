@@ -94,6 +94,11 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             self.track_tags = TinyTag.get(os.path.join(self.music_directory, file)) 
             return True
         return False
+    def get_info_for_current_file(self) -> str:
+        info: str = ''
+        if self.track_tags != None:
+            info = f"File name: {self.current_file}\nTitle: {self.track_tags.title}\nArtist: {self.track_tags.artist}\nAlbum: {self.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(self.track_tags.duration))}\n"
+        return info
     def clear_statistics(self):
         self.statistics = {
             "tracks": {
