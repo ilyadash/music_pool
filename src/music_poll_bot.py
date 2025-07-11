@@ -3,6 +3,7 @@ import pygame as pg
 import os
 import random as rnd
 from tinytag import TinyTag
+import time
 
 VOLUME_INCRIMENT = 15 #%
 SONG_END = pg.USEREVENT + 1
