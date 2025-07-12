@@ -81,8 +81,8 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             if self.load_file(file, message_reply_to):
                 pg.mixer.music.play()
                 self.playing = True
-            if message_reply_to != None:
-                self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
+                if message_reply_to != None:
+                    self.reply_to(message_reply_to, f"Now playing {self.current_track_number+1}/{len(self.playlist)}\n"+self.get_info_for_current_file())
         return self.playing
     def pause(self, message_reply_to=None) -> None:
         pg.mixer.music.pause()
