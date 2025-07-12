@@ -18,7 +18,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.state: str = '' # in what regime is bot right now
         self.playing: bool = False
         self.music_directory = ''
-        self.ok_extensions: list[str] = ['.mp3', '.m4a']
+        self.ok_extensions: list[str] = ['.mp3', '.wav', '.ogg']
         self.playlist: list[str] = []
         self.current_file: str = ''
         self.current_track_number: int = -1
