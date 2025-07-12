@@ -46,6 +46,13 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             if extension in self.ok_extensions: 
                 is_ok = True
         return is_ok
+    def set_playlist(self, list_of_files:list[str]=[]) -> None:
+        if len(list_of_files) == 0:
+            return
+        for file in list_of_files:
+            if not self.file_is_ok(file):
+                list_of_files.remove(file)
+        self.playlist = list_of_files
     def play_all(self, message_reply_to=None) -> None:
         self.current_track_number = 0
         if self.set_current_file(self.playlist[self.current_track_number]):
