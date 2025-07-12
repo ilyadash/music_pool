@@ -62,14 +62,25 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
                     if self.set_current_file(self.playlist[self.current_track_number+1]):
                         self.play(self.current_file, message_reply_to=message_reply_to)
                         pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
+    def load_file(self, file:str='', message_reply_to=None) -> bool:
+        loaded_file = True
+        if file == '':
+            file = self.current_file
+        try:
+            pg.mixer.music.load(os.path.join(self.music_directory, file))
+        except pg.error:
+            if message_reply_to != None:
+                self.reply_to(message_reply_to, f"Could not load the music file. Ensure the file {self.current_file} exists and is a valid format.")
+            loaded_file = False
+        return loaded_file
     def play(self, file:str='', message_reply_to=None) -> bool:
         self.playing = False
         if file == '':
             file = self.current_file
-        if self.set_current_file(file):
-            self.playing = True   
-            pg.mixer.music.load(os.path.join(self.music_directory, file))
-            pg.mixer.music.play()
+        if self.set_current_file(file):   
+            if self.load_file(file, message_reply_to):
+                pg.mixer.music.play()
+                self.playing = True
             if message_reply_to != None:
                 self.reply_to(message_reply_to, f"Now playing\n"+self.get_info_for_current_file())
         return self.playing
