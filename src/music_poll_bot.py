@@ -54,21 +54,20 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
                 list_of_files.remove(file)
         self.playlist = list_of_files
     def play_all(self, message_reply_to=None) -> None:
-        self.current_track_number = 0
-        if self.set_current_file(self.playlist[self.current_track_number]):
-            if message_reply_to != None:
-                self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")
-            self.play(self.current_file, message_reply_to=message_reply_to)
-            pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
-            self.current_track_number += 1
+        if message_reply_to != None:
+            self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")
+            self.current_track_number = 0
+            if self.set_current_file(self.playlist[self.current_track_number]):
+                self.play(self.current_file, message_reply_to=message_reply_to)
+            else:
+                self.play_next()
             self.continue_playing(message_reply_to)
     def continue_playing(self, message_reply_to=None): #TODO: Fix indefinite playing + ignoring commands while waiting for the end
-        while True:
-            for event in pg.event.get():
-                if event.type == SONG_END:
-                    if self.set_current_file(self.playlist[self.current_track_number+1]):
-                        self.play(self.current_file, message_reply_to=message_reply_to)
-                        pg.mixer.music.queue(os.path.join(self.music_directory, self.playlist[min(self.current_track_number+1, len(self.playlist))]))
+        while True and (self.current_track_number < len(self.playlist)):
+            #for event in pg.event.get():
+                #if event.type == SONG_END:
+            if not pg.mixer.music.get_busy():
+                self.play_next(message_reply_to)
     def load_file(self, file:str='', message_reply_to=None) -> bool:
         loaded_file = True
         if file == '':
