@@ -96,18 +96,18 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
         elif message_reply_to != None:
             await self.reply_to(message_reply_to, f"Skipped playing of "+self.playlist[self.current_track_number])
         return self.playing
-    def pause(self, message_reply_to=None) -> None:
+    async def pause(self, message_reply_to=None) -> None:
         pg.mixer.music.pause()
         self.playing = False
         self.start_playing = False
         if message_reply_to != None:
-            self.reply_to(message_reply_to, f"Paused: {self.current_file}")
-    def unpause(self, message_reply_to=None) -> None:
-        pg.mixer.music.pause()
+            await self.reply_to(message_reply_to, f"Paused: {self.current_file}")
+    async def unpause(self, message_reply_to=None) -> None:
+        pg.mixer.music.unpause()
         self.playing = True
         self.start_playing = True
         if message_reply_to != None:
-            self.reply_to(message_reply_to, f"Unpaused: {self.current_file}")
+            await self.reply_to(message_reply_to, f"Unpaused: {self.current_file}")
     def stop(self, message_reply_to=None) -> None:
         pg.mixer.music.stop()
         self.playing = False
