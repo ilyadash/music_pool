@@ -1,4 +1,6 @@
+import asyncio
 import telebot as tb
+from telebot.async_telebot import AsyncTeleBot
 import pygame as pg
 import os
 import random as rnd
@@ -7,13 +9,13 @@ import time
 
 SONG_END = pg.USEREVENT + 1
 
-# Initialize pygame mixer for playing music
-pg.init()
-pg.mixer.init()
-
-class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my additional data and methods
+#get_chat_member_count
+class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my additional data and methods
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Initialize pygame mixer for playing music
+        pg.init()
+        pg.mixer.init()
         self.has_started: bool = False # flag that bot is "turned on"
         self.state: str = '' # in what regime is bot right now
         self.playing: bool = False
@@ -26,6 +28,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
         self.shuffled_playlist: bool = False
         self.track_tags = None
         self.volume_increment = 10
+        self.start_playing: bool = False
         self.statistics = {
             "tracks": {
                 "played": 0,
@@ -53,21 +56,22 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
             if not self.file_is_ok(file):
                 list_of_files.remove(file)
         self.playlist = list_of_files
-    def play_all(self, message_reply_to=None) -> None:
+    async def play_all(self, message_reply_to=None) -> None:
         if message_reply_to != None:
-            self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")
+            await self.reply_to(message_reply_to, f"Files in queue: {len(self.playlist)}")
             self.current_track_number = 0
             if self.set_current_file(self.playlist[self.current_track_number]):
-                self.play(self.current_file, message_reply_to=message_reply_to)
+                await self.play(self.current_file, message_reply_to=message_reply_to)
             else:
-                self.play_next()
-            self.continue_playing(message_reply_to)
-    def continue_playing(self, message_reply_to=None): #TODO: Fix indefinite playing + ignoring commands while waiting for the end
-        while True and (self.current_track_number < len(self.playlist)):
-            #for event in pg.event.get():
-                #if event.type == SONG_END:
-            if not pg.mixer.music.get_busy():
-                self.play_next(message_reply_to)
+                await self.play_next(message_reply_to)
+            #await self.continue_playing(message_reply_to)
+    async def continue_playing(self, message_reply_to=None) -> bool: #TODO: Fix indefinite playing + ignoring commands while waiting for the end
+        if self.start_playing:
+            while True:
+                if not pg.mixer.music.get_busy():
+                    await self.play(message_reply_to=message_reply_to)
+                    return True
+        return False
     def load_file(self, file:str='', message_reply_to=None) -> bool:
         loaded_file = True
         if file == '':
@@ -79,7 +83,7 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
                 self.reply_to(message_reply_to, f"Could not load the music file. Ensure the file {self.current_file} exists and is a valid format.")
             loaded_file = False
         return loaded_file
-    def play(self, file:str='', message_reply_to=None) -> bool:
+    async def play(self, file:str='', message_reply_to=None) -> bool:
         self.playing = False
         if file == '':
             file = self.current_file
@@ -88,27 +92,37 @@ class MusicPollBot (tb.TeleBot): # add code for wrapper class - to hold my addit
                 pg.mixer.music.play()
                 self.playing = True
                 if message_reply_to != None:
-                    self.reply_to(message_reply_to, f"Now playing {self.current_track_number+1}/{len(self.playlist)}\n"+self.get_info_for_current_file())
+                    await self.reply_to(message_reply_to, f"Now playing {self.current_track_number+1}/{len(self.playlist)}\n"+self.get_info_for_current_file())
+        elif message_reply_to != None:
+            await self.reply_to(message_reply_to, f"Skipped playing of "+self.playlist[self.current_track_number])
         return self.playing
     def pause(self, message_reply_to=None) -> None:
         pg.mixer.music.pause()
         self.playing = False
+        self.start_playing = False
         if message_reply_to != None:
             self.reply_to(message_reply_to, f"Paused: {self.current_file}")
+    def unpause(self, message_reply_to=None) -> None:
+        pg.mixer.music.pause()
+        self.playing = True
+        self.start_playing = True
+        if message_reply_to != None:
+            self.reply_to(message_reply_to, f"Unpaused: {self.current_file}")
     def stop(self, message_reply_to=None) -> None:
         pg.mixer.music.stop()
         self.playing = False
+        self.start_playing = False
         if message_reply_to != None:
             self.reply_to(message_reply_to, f"Stopped playing music")
-    def play_next(self, message_reply_to=None) -> None:
+    async def play_next(self, message_reply_to=None) -> None:
         self.current_track_number += 1
         if self.set_current_file(self.playlist[self.current_track_number]):
-            self.play(self.current_file, message_reply_to)
+            await self.play(self.current_file, message_reply_to)
         else:
             if message_reply_to != None:
-                self.reply_to(message_reply_to, f"Skipped playing of "+self.playlist[self.current_track_number])
-            self.play_next(message_reply_to)
-        self.continue_playing(message_reply_to)
+                await self.reply_to(message_reply_to, f"Skipped playing of "+self.playlist[self.current_track_number])
+            await self.play_next(message_reply_to)
+        #await self.continue_playing(message_reply_to)
     def set_volume(self, volume) -> None: # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
         pg.mixer.music.set_volume(volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100

@@ -1,6 +1,5 @@
-from telebot import TeleBot
+import asyncio
 import os
-from telebot import types
 from music_poll_bot import MusicPollBot
 import sys
 
@@ -10,60 +9,59 @@ sys.path.append(os.path.join(CURRENT_DIRECTORY, 'utils'))
 import environment as env
 
 bot = MusicPollBot(env.get_bot_token())
-bot.music_directory = env.get_music_directory()
-bot.set_playlist(env.get_music_playlist())
-bot.set_volume(50)
-bot.volume_increment = env.get_volume_increment()
 
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
+async def send_welcome(message):
     """Send a message when the command /start is issued."""
-    bot.reply_to(message, "Welcome! I can play music from your local directory. Use /play to start or /help for help.")
+    await bot.reply_to(message, "Welcome! I can play music from your local directory. Use /play to start or /help for help.")
 
 @bot.message_handler(commands=['help'])
-def send_help(message):
+async def send_help(message):
     """Send a message with available commands."""
-    bot.reply_to(message, "/play - Start playing music\n/next - Go to the next track\n/up - Increase volume\n/down - Decrease volume")
+    await bot.reply_to(message, "/play - Start playing music\n/next - Go to the next track\n/up - Increase volume\n/down - Decrease volume")
 
 @bot.message_handler(commands=['play'])
-def play_music(message):
+async def play_music(message):
     """Play music from the local directory."""
     bot.shuffle_playlist()
-    bot.play_all(message)
+    await bot.play_all(message)
 
 @bot.message_handler(commands=['pause'])
-def pause_music(message):
-    bot.pause(message)
+async def pause_music(message):
+    await bot.pause(message)
+    
+@bot.message_handler(commands=['unpause'])
+async def unpause_music(message):
+    await bot.unpause(message)    
 
 @bot.message_handler(commands=['next'])
-def play_next_track(message):
+async def play_next_track(message):
     """Play the next track in the directory."""
-    bot.play_next(message)        
+    await bot.play_next(message)        
 
 @bot.message_handler(commands=['up'])
-def increase_volume(message):
+async def increase_volume(message):
     """Increase the volume."""
     bot.up()
-    bot.reply_to(message, f"Volume increased to: {bot.current_volume}%")
+    await bot.reply_to(message, f"Volume increased to: {bot.current_volume}%")
 
 @bot.message_handler(commands=['down'])
-def decrease_volume(message):
+async def decrease_volume(message):
     """Decrease the volume."""
     bot.down()
-    bot.reply_to(message, f"Volume decreased to: {bot.current_volume}%")
+    await bot.reply_to(message, f"Volume decreased to: {bot.current_volume}%")
 
 @bot.message_handler(commands=['stop'])
-def stop_play(message):
-    bot.stop(message)   
+async def stop_play(message):
+    await bot.stop(message)   
 
 # Run the bot using a loop (or use an event-driven method if you're in a non-blocking environment)
-def main():
-    while True:
-        try:
-            bot.polling(none_stop=True)
-        except Exception as e:
-            print(f"An error occurred: {e}")
+async def main():
+    await asyncio.gather(bot.infinity_polling(), bot.continue_playing())
 
 if __name__ == '__main__':
-    remove_keyboard = types.ReplyKeyboardRemove()
-    main()
+    bot.music_directory = env.get_music_directory()
+    bot.set_playlist(env.get_music_playlist())
+    bot.set_volume(50)
+    bot.volume_increment = env.get_volume_increment()
+    asyncio.run(main())
