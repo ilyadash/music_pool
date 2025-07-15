@@ -1,5 +1,4 @@
 import asyncio
-import telebot as tb
 from telebot.async_telebot import AsyncTeleBot
 import pygame as pg
 import os
@@ -18,14 +17,16 @@ SONG_END = pg.USEREVENT + 1
 class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my additional data and methods
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Initialize pygame mixer for playing music
+        #TODO: Add poll methods
+        #TODO: Add admin only methods
         pg.init()
         pg.mixer.init()
         self.has_started: bool = False # flag that bot is "turned on"
         self.state: str = '' # in what regime is bot right now
         self.playing: bool = False
         self.music_directory = ''
-        self.ok_extensions: list[str] = ['.mp3', '.wav', '.ogg']
+        self.ok_to_convert_extensions: list[str] = ['.m4a']
+        self.ok_to_play_extensions: list[str] = ['.mp3', '.wav', '.ogg']
         self.playlist: list[str] = []
         self.current_file: str = ''
         self.current_track_number: int = -1
@@ -44,13 +45,46 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
                 "passed": 0
             }
         }
-    def convert_all_to_mp3(self, dir:str = '', files:list[str] = []) -> None:
+    def check_file_exists(self, full_path) -> bool:
+        return os.path.exists(full_path) and os.path.isfile(full_path)
+    async def convert_to_mp3(self, dir, file, message_reply_to=None) -> bool:
+        await convert_to_mp3(dir, file)
+        if message_reply_to != None:
+            await self.reply_to(message_reply_to, f"Converted {file} to mp3")
+    async def convert_all_to_mp3(self, dir:str = '', files:list[str] = [], message_reply_to=None) -> None:
+        #TODO: Fix conversion to mp3 to work faster. In parallel, maybe?
+        files_to_convert:list[str] = []
+        if message_reply_to != None:
+            await self.reply_to(message_reply_to, f"Converting all files with unacceptable extensions to mp3")
+            
         if dir == '':
             dir = self.music_directory
+            
         if len(files) == 0:
             files = self.playlist
+            
         for file in files:
-            convert_to_mp3(dir, file)
+            name, extension = os.path.splitext(file)
+            if extension in self.ok_to_convert_extensions:
+                if not self.check_file_exists(dir + '\\' + name + '.mp3'):
+                    files_to_convert.append(file)
+                     
+        if message_reply_to != None:
+            if len(files_to_convert) == 0:
+                await self.reply_to(message_reply_to, f"All files are already in mp3!")
+            else:
+                await self.reply_to(message_reply_to, f"Wait before conversion is ended!") 
+                    
+        if len(files_to_convert) > 0:
+            conversion_tasks = [
+                self.convert_to_mp3(dir, file_name, message_reply_to)
+                for file_name in files_to_convert
+            ]
+            
+            await asyncio.gather(*conversion_tasks, return_exceptions=False)
+            
+            if message_reply_to != None:
+                await self.reply_to(message_reply_to, f"Finished converting {len(files_to_convert)} to mp3")
     def shuffle_playlist(self) -> None:
         self.shuffled_playlist = True
         rnd.shuffle(self.playlist)
@@ -58,10 +92,10 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
         is_ok: bool = False
         if str(type(file)) == "<class 'str'>":
             name, extension = os.path.splitext(file)
-            if extension in self.ok_extensions: 
+            if extension in self.ok_to_play_extensions: 
                 is_ok = True
         return is_ok
-    def set_playlist(self, list_of_files:list[str]=[]) -> None:
+    async def set_playlist(self, list_of_files:list[str]=[]) -> None:
         if len(list_of_files) == 0:
             return
         for file in list_of_files:
@@ -76,8 +110,7 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
                 await self.play(self.current_file, message_reply_to=message_reply_to)
             else:
                 await self.play_next(message_reply_to)
-            #await self.continue_playing(message_reply_to)
-    async def continue_playing(self, message_reply_to=None) -> bool: #TODO: Fix indefinite playing + ignoring commands while waiting for the end
+    async def continue_playing(self, message_reply_to=None) -> bool:
         if self.start_playing:
             while True:
                 if not pg.mixer.music.get_busy():
@@ -134,7 +167,6 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
             if message_reply_to != None:
                 await self.reply_to(message_reply_to, f"Skipped playing of "+self.playlist[self.current_track_number])
             await self.play_next(message_reply_to)
-        #await self.continue_playing(message_reply_to)
     def set_volume(self, volume) -> None: # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
         pg.mixer.music.set_volume(volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100

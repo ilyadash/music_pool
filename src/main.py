@@ -12,7 +12,11 @@ bot = MusicPollBot(env.get_bot_token())
 
 @bot.message_handler(commands=['start'])
 async def send_welcome(message):
-    """Send a message when the command /start is issued."""
+    bot.music_directory = env.get_music_directory()
+    bot.set_volume(50)
+    bot.volume_increment = env.get_volume_increment()
+    await bot.convert_all_to_mp3(env.get_music_directory(), env.get_music_playlist(), message)
+    await bot.set_playlist(env.get_music_playlist())
     await bot.reply_to(message, "Welcome! I can play music from your local directory. Use /play to start or /help for help.")
 
 @bot.message_handler(commands=['help'])
@@ -64,9 +68,4 @@ async def main():
     await asyncio.gather(bot.infinity_polling(), bot.continue_playing())
 
 if __name__ == '__main__':
-    bot.music_directory = env.get_music_directory()
-    bot.convert_all_to_mp3(env.get_music_directory(), env.get_music_playlist())
-    bot.set_playlist(env.get_music_playlist())
-    bot.set_volume(50)
-    bot.volume_increment = env.get_volume_increment()
     asyncio.run(main())
