@@ -6,10 +6,15 @@ import os
 import random as rnd
 from tinytag import TinyTag
 import time
+import sys
+
+CURRENT_DIRECTORY: str = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(CURRENT_DIRECTORY, 'utils'))
+
+from convert import convert_to_mp3
 
 SONG_END = pg.USEREVENT + 1
 
-#get_chat_member_count
 class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my additional data and methods
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,6 +44,13 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
                 "passed": 0
             }
         }
+    def convert_all_to_mp3(self, dir:str = '', files:list[str] = []) -> None:
+        if dir == '':
+            dir = self.music_directory
+        if len(files) == 0:
+            files = self.playlist
+        for file in files:
+            convert_to_mp3(dir, file)
     def shuffle_playlist(self) -> None:
         self.shuffled_playlist = True
         rnd.shuffle(self.playlist)

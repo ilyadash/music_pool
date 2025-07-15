@@ -53,7 +53,11 @@ async def decrease_volume(message):
 
 @bot.message_handler(commands=['stop'])
 async def stop_play(message):
-    await bot.stop(message)   
+    await bot.stop(message)
+    
+@bot.message_handler(commands=['sound'])
+async def sound(message):
+    await bot.sound(message)
 
 # Run the bot using a loop (or use an event-driven method if you're in a non-blocking environment)
 async def main():
@@ -61,6 +65,7 @@ async def main():
 
 if __name__ == '__main__':
     bot.music_directory = env.get_music_directory()
+    bot.convert_all_to_mp3(env.get_music_directory(), env.get_music_playlist())
     bot.set_playlist(env.get_music_playlist())
     bot.set_volume(50)
     bot.volume_increment = env.get_volume_increment()
