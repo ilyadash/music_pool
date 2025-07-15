@@ -12,8 +12,6 @@ sys.path.append(os.path.join(CURRENT_DIRECTORY, 'utils'))
 
 from convert import convert_to_mp3
 
-SONG_END = pg.USEREVENT + 1
-
 class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my additional data and methods
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -190,6 +188,8 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
         if self.track_tags != None:
             info = f"File name: {self.current_file}\nTitle: {self.track_tags.title}\nArtist: {self.track_tags.artist}\nAlbum: {self.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(self.track_tags.duration))}\n"
         return info
+    def skip_track(self):
+        pass
     def clear_statistics(self):
         self.statistics = {
             "tracks": {
