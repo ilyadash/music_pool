@@ -17,3 +17,6 @@ def get_volume_increment() -> int:
 
 def get_initial_volume() -> int:
     return int(os.environ.get('INITIAL_VOLUME', '50'))
+
+def check_file_exists(full_path:str) -> bool:
+    return os.path.exists(full_path) and os.path.isfile(full_path)
