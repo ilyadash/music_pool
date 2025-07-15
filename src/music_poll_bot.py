@@ -82,7 +82,7 @@ class MusicPollBot (AsyncTeleBot): # add code for wrapper class - to hold my add
             await asyncio.gather(*conversion_tasks, return_exceptions=False)
             
             if message_reply_to != None:
-                await self.reply_to(message_reply_to, f"Finished converting {len(files_to_convert)} to mp3")
+                await self.reply_to(message_reply_to, f"Finished converting {len(files_to_convert)} files to mp3")
     def shuffle_playlist(self) -> None:
         self.shuffled_playlist = True
         rnd.shuffle(self.playlist)
