@@ -11,7 +11,7 @@ import environment as env
 bot = MusicPollBot(env.get_bot_token())
 
 
-@bot.message_handler(commands=["start"])
+@bot.message_handler(commands=["start"]) # TODO: Fix long pause after 'start' command
 async def send_welcome(message):
     bot.music_directory = env.get_music_directory()
     bot.set_volume(50)
