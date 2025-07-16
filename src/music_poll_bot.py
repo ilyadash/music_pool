@@ -132,15 +132,17 @@ class MusicPollBot(AsyncTeleBot):
             self.current_track_number = 0
             await self.play(message_reply_to=message_reply_to)
 
-    async def continue_playing(self, message_reply_to=None) -> None:
-        if self.start_playing:
-            while True:
-                if self.voted_to_skip():
+    async def continue_playing(self, message_reply_to=None) -> bool:
+        while True:
+            if self.start_playing:
+                skip = await self.voted_to_skip()
+                if skip:
                     self.clear_vote_to_skip()
                     await self.play_next(message_reply_to=message_reply_to)
                 elif not pg.mixer.music.get_busy():
-                    await self.play(message_reply_to=message_reply_to)
-
+                    await self.play_next(message_reply_to=message_reply_to)
+            await asyncio.sleep(0.1) # Sleep shortly to yield control to event loop (prevent CPU lockup)
+    
     def load_file(self, file: str = "", message_reply_to=None) -> bool:
         loaded_file = True
         if file == "":
