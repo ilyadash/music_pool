@@ -38,6 +38,7 @@ class MusicPollBot(AsyncTeleBot):
         self.votes_threshold_relative: int = 0 # %
         self.votes_threshold_shift: int = 0
         self.message_reply_to = None
+        self.last_playing_message = None
         self.statistics = {
             "tracks": {"played": 0, "skipped": 0},
             "polls": {"started": 0, "passed": 0},
@@ -178,7 +179,7 @@ class MusicPollBot(AsyncTeleBot):
                 self.update_message_reply_to(message_reply_to)
                 self.statistics["tracks"]["played"] += 1
                 if self.message_reply_to is not None:
-                    await self.reply_to(
+                    self.last_playing_message = await self.reply_to(
                         self.message_reply_to,
                         f"Now playing {self.current_track_number + 1}/{len(self.playlist)}\n"
                         + self.get_info_for_current_file(),
@@ -222,7 +223,7 @@ class MusicPollBot(AsyncTeleBot):
                 )
 
     def set_volume(self, volume) -> None:  
-        # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
+        # TODO: Fix setting of new volume. Why are numbers not round? Do them round. (do not know how)
         pg.mixer.music.set_volume(volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
 
@@ -263,7 +264,7 @@ class MusicPollBot(AsyncTeleBot):
             self.statistics["polls"]["passed"] += 1
             self.statistics["tracks"]["skipped"] += 1
             await self.reply_to(
-                self.message_reply_to, f"Skip has passed!\nVoted for skip: {self.votes_to_skip} / {self.number_of_listeners}\nNeeded to skip: {max(int(self.votes_threshold_relative/100*self.number_of_listeners) + self.votes_threshold_shift, 1)}"
+                self.last_playing_message, f"Skip has passed!\nVoted for skip: {self.votes_to_skip} / {self.number_of_listeners}\nNeeded to skip: {max(int(self.votes_threshold_relative/100*self.number_of_listeners) + self.votes_threshold_shift, 1)}"
             )
         return vote_result
 
