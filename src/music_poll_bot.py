@@ -1,5 +1,6 @@
 import asyncio
 from telebot.async_telebot import AsyncTeleBot
+from telebot import types
 import pygame as pg
 import os
 import random as rnd
