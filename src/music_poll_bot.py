@@ -120,7 +120,7 @@ class MusicPollBot(AsyncTeleBot):
                 message_reply_to, f"Files in queue: {len(self.playlist)}"
             )
             self.current_track_number = 0
-            await self.play()
+            await self.play(message_reply_to=message_reply_to)
 
     async def continue_playing(self, message_reply_to=None) -> None:
         if self.start_playing:
