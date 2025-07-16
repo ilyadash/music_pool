@@ -249,7 +249,6 @@ class MusicPollBot(AsyncTeleBot):
     async def skip_track(self, message_reply_to=None):
         self.votes_to_skip += 1
         if message_reply_to is not None:
-            self.update_message_reply_to(message_reply_to)
             await self.reply_to(
                 message_reply_to, f"Accepted skip vote from user: @{message_reply_to.from_user.username}"
             )
