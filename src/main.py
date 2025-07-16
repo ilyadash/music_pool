@@ -19,6 +19,7 @@ bot = MusicPollBot(env.get_bot_token())
 #TODO: Add so every author is heard equally (more or less)
 #TODO: Add playing from yandex music
 #TODO: Add statistics functions (how many track were skipped, were listened till the end and how long were listening to music)
+#TODO: Add sending playing track file/playing this file to everyone in the chat (is the second even possible)
 
 @bot.message_handler(commands=["start"])
 async def send_welcome(message):
