@@ -10,8 +10,17 @@ import environment as env
 
 bot = MusicPollBot(env.get_bot_token())
 
+#TODO: Add buttons instead of commands
+#TODO: Fill help with all the commands
+#TODO: Add readme.md file
+#TODO: Add .env file template
+#TODO: Fix code on what to do after playlist ends
+#TODO: Add statistics
+#TODO: Add so every author is heard equally (more or less)
+#TODO: Add playing from yandex music
+#TODO: Add 
 
-@bot.message_handler(commands=["start"]) # TODO: Fix long pause after 'start' command
+@bot.message_handler(commands=["start"])
 async def send_welcome(message):
     bot.music_directory = env.get_music_directory()
     bot.set_volume(50)
