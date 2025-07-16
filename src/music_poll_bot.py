@@ -38,6 +38,7 @@ class MusicPollBot(AsyncTeleBot):
         self.votes_to_skip: int = 0
         self.votes_threshold_relative: int = 0 # %
         self.votes_threshold_shift: int = 0
+        self.message_reply_to = None
         self.statistics = {
             "tracks": {"played": 0, "skipped": 0},
             "polls": {"started": 0, "passed": 0},
@@ -45,6 +46,14 @@ class MusicPollBot(AsyncTeleBot):
 
     def check_file_exists(self, full_path) -> bool:
         return os.path.exists(full_path) and os.path.isfile(full_path)
+
+    def update_message_reply_to(self, message) -> None:
+        if message is not None:
+            self.message_reply_to = message
+        
+    async def my_reply_to(self, text:str = "") -> types.Message:
+        if self.message_reply_to is not None:
+            return await self.reply_to(self.message_reply_to, text)
 
     async def convert_to_mp3(self, dir, file, message_reply_to=None) -> bool:
         await convert_to_mp3(dir, file)
