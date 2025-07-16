@@ -167,7 +167,7 @@ class MusicPollBot(AsyncTeleBot):
             if self.load_file(file, message_reply_to):
                 pg.mixer.music.play()
                 self.playing = True
-                if message_reply_to is not None:
+                self.start_playing = True
                     await self.reply_to(
                         message_reply_to,
                         f"Now playing {self.current_track_number + 1}/{len(self.playlist)}\n"
