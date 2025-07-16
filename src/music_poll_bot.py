@@ -34,6 +34,10 @@ class MusicPollBot(AsyncTeleBot):
         self.track_tags = None
         self.volume_increment = 10
         self.start_playing: bool = False
+        self.number_of_listeners: int = 0
+        self.votes_to_skip: int = 0
+        self.votes_threshold_relative: int = 0 # %
+        self.votes_threshold_shift: int = 0
         self.statistics = {
             "tracks": {"played": 0, "skipped": 0},
             "polls": {"started": 0, "passed": 0},
@@ -122,7 +126,10 @@ class MusicPollBot(AsyncTeleBot):
     async def continue_playing(self, message_reply_to=None) -> None:
         if self.start_playing:
             while True:
-                if not pg.mixer.music.get_busy():
+                if self.voted_to_skip():
+                    self.clear_vote_to_skip()
+                    await self.play_next(message_reply_to=message_reply_to)
+                elif not pg.mixer.music.get_busy():
                     await self.play(message_reply_to=message_reply_to)
 
     def load_file(self, file: str = "", message_reply_to=None) -> bool:
@@ -227,8 +234,19 @@ class MusicPollBot(AsyncTeleBot):
             info = f"File name: {self.current_file}\nTitle: {self.track_tags.title}\nArtist: {self.track_tags.artist}\nAlbum: {self.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(self.track_tags.duration))}\n"
         return info
 
-    def skip_track(self):
-        pass
+    async def skip_track(self, message_reply_to=None):
+        self.votes_to_skip += 1
+        if message_reply_to is not None:
+            await self.reply_to(
+                message_reply_to, f"Accepted skip vote from user: {message_reply_to.user}"
+            )
+
+    def voted_to_skip(self):
+        should_skip = ((self.votes_to_skip - self.votes_threshold_shift) / self.number_of_listeners) * 100 >= self.votes_threshold_relative
+        return should_skip
+    
+    def clear_vote_to_skip(self):
+        self.votes_to_skip = 0
 
     def clear_statistics(self):
         self.statistics = {

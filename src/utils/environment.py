@@ -20,3 +20,9 @@ def get_initial_volume() -> int:
 
 def check_file_exists(full_path:str) -> bool:
     return os.path.exists(full_path) and os.path.isfile(full_path)
+
+def get_vote_threshold_relative() -> int:
+    return int(os.environ.get('VOTE_RELATIVE_THRESHOLD', '50'))
+
+def get_vote_threshold_shift() -> int:
+    return int(os.environ.get('VOTE_THRESHOLD_SHIFT', '0'))
