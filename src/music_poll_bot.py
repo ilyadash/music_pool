@@ -20,7 +20,6 @@ class MusicPollBot(AsyncTeleBot):
         # TODO: Add admin only methods
         pg.init()
         pg.mixer.init()
-        self.has_started: bool = False  # flag that bot is "turned on"
         self.state: str = ""  # in what regime is bot right now
         self.playing: bool = False
         self.music_directory = ""
@@ -216,9 +215,6 @@ class MusicPollBot(AsyncTeleBot):
     def down(self) -> None:
         new_volume = int(max(0, self.current_volume - self.volume_increment))
         self.set_volume(new_volume)
-
-    def set_has_started(self, in_state: bool) -> None:
-        self.has_started = in_state
 
     def set_current_file(self, file) -> bool:
         if self.file_is_ok(file):
