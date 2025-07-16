@@ -31,7 +31,6 @@ async def send_welcome(message):
 
 @bot.message_handler(commands=["help"])
 async def send_help(message):
-    """Send a message with available commands."""
     await bot.reply_to(
         message,
         "/play - Start playing music\n/next - Go to the next track\n/up - Increase volume\n/down - Decrease volume",
@@ -40,7 +39,6 @@ async def send_help(message):
 
 @bot.message_handler(commands=["play"])
 async def play_music(message):
-    """Play music from the local directory."""
     bot.shuffle_playlist()
     await bot.play_all(message)
 
@@ -57,20 +55,17 @@ async def unpause_music(message):
 
 @bot.message_handler(commands=["next"])
 async def play_next_track(message):
-    """Play the next track in the directory."""
     await bot.play_next(message)
 
 
 @bot.message_handler(commands=["up"])
 async def increase_volume(message):
-    """Increase the volume."""
     bot.up()
     await bot.reply_to(message, f"Volume increased to: {bot.current_volume}%")
 
 
 @bot.message_handler(commands=["down"])
 async def decrease_volume(message):
-    """Decrease the volume."""
     bot.down()
     await bot.reply_to(message, f"Volume decreased to: {bot.current_volume}%")
 
