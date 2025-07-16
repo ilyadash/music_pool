@@ -247,10 +247,13 @@ class MusicPollBot(AsyncTeleBot):
                 message_reply_to, f"Accepted skip vote from user: @{message_reply_to.from_user.username}"
             )
 
-    def voted_to_skip(self):
-        should_skip = ((self.votes_to_skip - self.votes_threshold_shift) / self.number_of_listeners) * 100 >= self.votes_threshold_relative
-        return should_skip
-    
+    async def voted_to_skip(self):
+        vote_result = ((self.votes_to_skip - self.votes_threshold_shift) / self.number_of_listeners) * 100 >= self.votes_threshold_relative
+        if vote_result:
+            await self.reply_to(
+                self.message_reply_to, f"Skip has passed!\nVoted for skip: {self.votes_to_skip} / {self.number_of_listeners}\nNeeded to skip: {max(int(self.votes_threshold_relative/100*self.number_of_listeners) + self.votes_threshold_shift, 1)}"
+            )        
+        return vote_result
     def clear_vote_to_skip(self):
         self.votes_to_skip = 0
 
