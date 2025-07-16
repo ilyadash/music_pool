@@ -13,9 +13,7 @@ sys.path.append(os.path.join(CURRENT_DIRECTORY, "utils"))
 from convert import convert_to_mp3
 
 
-class MusicPollBot(
-    AsyncTeleBot
-):  # add code for wrapper class - to hold my additional data and methods
+class MusicPollBot(AsyncTeleBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # TODO: Add poll methods
@@ -52,7 +50,6 @@ class MusicPollBot(
     async def convert_all_to_mp3(
         self, dir: str = "", files: list[str] = [], message_reply_to=None
     ) -> None:
-        # TODO: Fix conversion to mp3 to work faster. In parallel, maybe?
         files_to_convert: list[str] = []
         if message_reply_to is not None:
             await self.reply_to(
@@ -200,11 +197,8 @@ class MusicPollBot(
                 )
             await self.play_next(message_reply_to)
 
-    def set_volume(
-        self, volume
-    ) -> (
-        None
-    ):  # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
+    def set_volume(self, volume) -> None:  
+        # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
         pg.mixer.music.set_volume(volume / 100.0)
         self.current_volume = pg.mixer.music.get_volume() * 100
 

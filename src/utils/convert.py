@@ -11,6 +11,5 @@ async def convert_to_mp3(file_dir: str, file_name: str) -> str:
     audio    = await asyncio.to_thread(AudioSegment.from_file, full_path)
     output   = os.path.join(file_dir, f"{name}.mp3")
 
-    # export in thread, with kwargs
     await asyncio.to_thread(audio.export, output, format="mp3", tags=tags)
     return output
