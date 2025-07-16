@@ -17,7 +17,6 @@ from convert import convert_to_mp3
 class MusicPollBot(AsyncTeleBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # TODO: Add poll methods
         # TODO: Add admin only methods
         pg.init()
         pg.mixer.init()
