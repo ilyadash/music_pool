@@ -18,7 +18,7 @@ bot = MusicPollBot(env.get_bot_token())
 #TODO: Add statistics
 #TODO: Add so every author is heard equally (more or less)
 #TODO: Add playing from yandex music
-#TODO: Add 
+#TODO: Add statistics functions (how many track were skipped, were listened till the end and how long were listening to music)
 
 @bot.message_handler(commands=["start"])
 async def send_welcome(message):

@@ -41,6 +41,7 @@ class MusicPollBot(AsyncTeleBot):
         self.statistics = {
             "tracks": {"played": 0, "skipped": 0},
             "polls": {"started": 0, "passed": 0},
+            "time_listening": 0
         }
 
     def check_file_exists(self, full_path) -> bool:
@@ -175,6 +176,7 @@ class MusicPollBot(AsyncTeleBot):
                 self.playing = True
                 self.start_playing = True
                 self.update_message_reply_to(message_reply_to)
+                self.statistics["tracks"]["played"] += 1
                 if self.message_reply_to is not None:
                     await self.reply_to(
                         self.message_reply_to,
@@ -248,6 +250,8 @@ class MusicPollBot(AsyncTeleBot):
 
     async def skip_track(self, message_reply_to=None):
         self.votes_to_skip += 1
+        if self.votes_to_skip == 1:
+            self.statistics["polls"]["started"] += 1
         if message_reply_to is not None:
             await self.reply_to(
                 message_reply_to, f"Accepted skip vote from user: @{message_reply_to.from_user.username}"
@@ -256,6 +260,8 @@ class MusicPollBot(AsyncTeleBot):
     async def voted_to_skip(self): # TODO: Fix long pause after 'skip' command results
         vote_result = ((self.votes_to_skip - self.votes_threshold_shift) / self.number_of_listeners) * 100 >= self.votes_threshold_relative
         if vote_result:
+            self.statistics["polls"]["passed"] += 1
+            self.statistics["tracks"]["skipped"] += 1
             await self.reply_to(
                 self.message_reply_to, f"Skip has passed!\nVoted for skip: {self.votes_to_skip} / {self.number_of_listeners}\nNeeded to skip: {max(int(self.votes_threshold_relative/100*self.number_of_listeners) + self.votes_threshold_shift, 1)}"
             )
