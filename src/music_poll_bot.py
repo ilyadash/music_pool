@@ -211,7 +211,6 @@ class MusicPollBot(AsyncTeleBot):
                     message_reply_to,
                     "Skipped playing of " + self.playlist[self.current_track_number],
                 )
-            await self.play_next(message_reply_to)
 
     def set_volume(self, volume) -> None:  
         # TODO: Fix setting of new volume. Why are numbers not round? Do them round.
