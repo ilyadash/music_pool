@@ -12,7 +12,7 @@ bot = MusicPollBot(env.get_bot_token())
 
 #TODO: Add buttons instead of commands
 #TODO: Fill help with all the commands
-#TODO: Add readme.md file
+#TODO: Add readme.md file into repository
 #TODO: Add .env file template
 #TODO: Fix code on what to do after playlist ends
 #TODO: Add statistics
@@ -20,6 +20,7 @@ bot = MusicPollBot(env.get_bot_token())
 #TODO: Add playing from yandex music
 #TODO: Add statistics functions (how many track were skipped, were listened till the end and how long were listening to music)
 #TODO: Add sending playing track file/playing this file to everyone in the chat (is the second even possible)
+#TODO: Add emojis to bot messages
 
 @bot.message_handler(commands=["start"])
 async def send_welcome(message):
