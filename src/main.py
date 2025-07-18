@@ -10,17 +10,19 @@ import environment as env
 
 bot = MusicPollBot(env.get_bot_token())
 
+#TODO: Move all bot initialization that makes sense to __init__ method
+#TODO: Add "authors" who have sent tracks - separate playlists to different directories named by "authors/participants"
+#TODO: Fix code on what to do after playlist ends - congratualte, state winner?
+#TODO: Add statistics - what will be interesting for people in the end?
 #TODO: Add buttons instead of commands
 #TODO: Fill help with all the commands
-#TODO: Add readme.md file into repository
 #TODO: Add .env file template
-#TODO: Fix code on what to do after playlist ends
-#TODO: Add statistics
 #TODO: Add so every author is heard equally (more or less)
 #TODO: Add playing from yandex music
 #TODO: Add statistics functions (how many track were skipped, were listened till the end and how long were listening to music)
 #TODO: Add sending playing track file/playing this file to everyone in the chat (is the second even possible)
 #TODO: Add emojis to bot messages
+#TODO: Update readme.md file into repository
 
 @bot.message_handler(commands=["start"])
 async def send_welcome(message):
