@@ -37,7 +37,7 @@ class MusicPollBot(AsyncTeleBot):
         self.votes_to_skip: int = 0
         self.votes_threshold_relative: int = 0 # %
         self.votes_threshold_shift: int = 0
-        self.message_reply_to = None
+        self.message_reply_to: types.Message = None
         self.last_playing_message = None
         self.statistics = {
             "tracks": {"played": 0, "skipped": 0},
@@ -48,7 +48,7 @@ class MusicPollBot(AsyncTeleBot):
     def check_file_exists(self, full_path) -> bool:
         return os.path.exists(full_path) and os.path.isfile(full_path)
 
-    def update_message_reply_to(self, message) -> None:
+    def update_message_reply_to(self, message:types.Message) -> None:
         if message is not None:
             self.message_reply_to = message
         
@@ -56,13 +56,13 @@ class MusicPollBot(AsyncTeleBot):
         if self.message_reply_to is not None:
             return await self.reply_to(self.message_reply_to, text)
 
-    async def convert_to_mp3(self, dir, file, message_reply_to=None) -> bool:
+    async def convert_to_mp3(self, dir, file, message_reply_to:types.Message=None) -> bool:
         await convert_to_mp3(dir, file)
         self.update_message_reply_to(message_reply_to)
         await self.my_reply_to(f"Converted {file} to mp3")
 
     async def convert_all_to_mp3(
-        self, dir: str = "", files: list[str] = [], message_reply_to=None
+        self, dir: str = "", files: list[str] = [], message_reply_to:types.Message=None
     ) -> None:
         files_to_convert: list[str] = []
         if message_reply_to is not None:
@@ -128,7 +128,7 @@ class MusicPollBot(AsyncTeleBot):
                 list_of_files.remove(file)
         self.playlist = list_of_files
 
-    async def play_all(self, message_reply_to=None) -> None:
+    async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:
         if message_reply_to is not None:
             self.update_message_reply_to(message_reply_to)
             await self.reply_to(
@@ -137,7 +137,7 @@ class MusicPollBot(AsyncTeleBot):
             self.current_track_number = 0
             await self.play(message_reply_to=message_reply_to)
 
-    async def continue_playing(self, message_reply_to=None) -> bool:
+    async def continue_playing(self, message_reply_to:types.Message=None) -> bool:
         while True:
             if self.start_playing:
                 skip = await self.voted_to_skip()
@@ -148,7 +148,7 @@ class MusicPollBot(AsyncTeleBot):
                     await self.play_next(message_reply_to=message_reply_to)
             await asyncio.sleep(0.1) # Sleep shortly to yield control to event loop (prevent CPU lockup)
     
-    def load_file(self, file: str = "", message_reply_to=None) -> bool:
+    def load_file(self, file: str = "", message_reply_to:types.Message=None) -> bool:
         loaded_file = True
         if file == "":
             file = self.current_file
@@ -164,7 +164,7 @@ class MusicPollBot(AsyncTeleBot):
             loaded_file = False
         return loaded_file
 
-    async def play(self, file: str = "", message_reply_to=None) -> bool:
+    async def play(self, file: str = "", message_reply_to:types.Message=None) -> bool:
         self.playing = False
         if file == "":
             if self.file_is_ok(self.current_file):
@@ -186,7 +186,7 @@ class MusicPollBot(AsyncTeleBot):
                     )
         return self.playing
 
-    async def pause(self, message_reply_to=None) -> None:
+    async def pause(self, message_reply_to:types.Message=None) -> None:
         pg.mixer.music.pause()
         self.playing = False
         self.start_playing = False
@@ -194,7 +194,7 @@ class MusicPollBot(AsyncTeleBot):
             self.update_message_reply_to(message_reply_to)
             await self.reply_to(message_reply_to, f"Paused: {self.current_file}")
 
-    async def unpause(self, message_reply_to=None) -> None:
+    async def unpause(self, message_reply_to:types.Message=None) -> None:
         pg.mixer.music.unpause()
         self.playing = True
         self.start_playing = True
@@ -202,7 +202,7 @@ class MusicPollBot(AsyncTeleBot):
             self.update_message_reply_to(message_reply_to)
             await self.reply_to(message_reply_to, f"Unpaused: {self.current_file}")
 
-    def stop(self, message_reply_to=None) -> None:
+    def stop(self, message_reply_to:types.Message=None) -> None:
         pg.mixer.music.stop()
         self.playing = False
         self.start_playing = False
@@ -210,7 +210,7 @@ class MusicPollBot(AsyncTeleBot):
             self.update_message_reply_to(message_reply_to)
             self.reply_to(message_reply_to, "Stopped playing music")
 
-    async def play_next(self, message_reply_to=None) -> None:
+    async def play_next(self, message_reply_to:types.Message=None) -> None:
         self.current_track_number += 1
         if self.set_current_file(self.playlist[self.current_track_number]):
             await self.play(self.current_file, message_reply_to=message_reply_to)
@@ -249,7 +249,7 @@ class MusicPollBot(AsyncTeleBot):
             info = f"File name: {self.current_file}\nTitle: {self.track_tags.title}\nArtist: {self.track_tags.artist}\nAlbum: {self.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(self.track_tags.duration))}\n"
         return info
 
-    async def skip_track(self, message_reply_to=None):
+    async def skip_track(self, message_reply_to:types.Message=None):
         self.votes_to_skip += 1
         if self.votes_to_skip == 1:
             self.statistics["polls"]["started"] += 1
