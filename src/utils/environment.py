@@ -6,11 +6,13 @@ load_dotenv() # load local .env file with bot token
 def get_bot_token() -> str:
     return os.environ.get('BOT_TOKEN','')
 
-def get_music_directory() -> str:
+def get_main_music_directory() -> str:
     return os.environ.get('MUSIC_DIRECTORY','')
 
-def get_music_playlist() -> list[str]:
-    return os.listdir(get_music_directory())
+def get_raw_music_playlist(files_directory:str=None) -> list[str]:
+    if files_directory is None:
+        files_directory = get_main_music_directory()
+    return os.listdir(files_directory)
 
 def get_volume_increment() -> int:
     return int(os.environ.get('VOLUME_INCRIMENT', '10'))
