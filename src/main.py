@@ -26,11 +26,7 @@ bot = MusicPollBot(env.get_bot_token())
 
 @bot.message_handler(commands=["start"])
 async def send_welcome(message):
-    bot.music_directory = env.get_music_directory()
     bot.set_volume(50)
-    bot.volume_increment = env.get_volume_increment()
-    bot.votes_threshold_relative = env.get_vote_threshold_relative()
-    bot.votes_threshold_shift = env.get_vote_threshold_shift()
     bot.number_of_listeners = await bot.get_chat_member_count(message.chat.id)
     await bot.convert_all_to_mp3(
         env.get_music_directory(), env.get_music_playlist(), message

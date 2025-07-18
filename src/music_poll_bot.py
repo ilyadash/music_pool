@@ -11,6 +11,7 @@ import sys
 CURRENT_DIRECTORY: str = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(CURRENT_DIRECTORY, "utils"))
 
+import environment as env
 from convert import convert_to_mp3
 
 
@@ -22,7 +23,7 @@ class MusicPollBot(AsyncTeleBot):
         pg.mixer.init()
         self.state: str = ""  # in what regime is bot right now
         self.playing: bool = False
-        self.music_directory = ""
+        self.music_directory = env.get_main_music_directory()
         self.ok_to_convert_extensions: list[str] = [".m4a"]
         self.ok_to_play_extensions: list[str] = [".mp3", ".wav", ".ogg"]
         self.playlist: list[str] = []
@@ -31,12 +32,14 @@ class MusicPollBot(AsyncTeleBot):
         self.current_volume = pg.mixer.music.get_volume() * 100  # in %
         self.shuffled_playlist: bool = False
         self.track_tags = None
-        self.volume_increment = 10
+        self.volume_increment = env.get_volume_increment()
         self.start_playing: bool = False
+        self.number_of_participants: int = 0
         self.number_of_listeners: int = 0
+        self.number_of_administrators: int = 0
         self.votes_to_skip: int = 0
-        self.votes_threshold_relative: int = 0 # %
-        self.votes_threshold_shift: int = 0
+        self.votes_threshold_relative: int = env.get_vote_threshold_relative() # in %
+        self.votes_threshold_shift: int = env.get_vote_threshold_shift() # in votes
         self.message_reply_to: types.Message = None
         self.last_playing_message = None
         self.statistics = {
