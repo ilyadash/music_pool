@@ -34,7 +34,13 @@ async def send_welcome(message):
     await bot.set_playlist(env.get_music_playlist())
     await bot.reply_to(
         message,
-        f"Welcome! I can play music from your local directory.\nUse /play to start or /help for help.\nSound volume - {int(bot.current_volume)}%.\nFound {bot.number_of_listeners} listeners.",
+        ("Welcome! I can play music from your local directory.\n"
+         "Use /play to start or /help for help.\n"
+         f"Sound volume - {int(bot.current_volume)}%.\n"
+         f"Found {bot.number_of_participants} participants, "
+         f"{bot.number_of_listeners} listeners, "
+         f"{bot.number_of_administrators} administrators."
+         ),
     )
 
 
