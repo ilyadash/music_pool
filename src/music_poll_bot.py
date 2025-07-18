@@ -131,6 +131,7 @@ class MusicPollBot(AsyncTeleBot):
                 list_of_files.remove(file)
         self.playlist = list_of_files
 
+    #Start "anew" - play all files possible
     async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:
         if shuffle:
             self.shuffle_playlist()
@@ -142,6 +143,7 @@ class MusicPollBot(AsyncTeleBot):
         self.current_track_number = 0
         await self.play(message_reply_to=message_reply_to)
 
+    #Always playing loop for music stop only if specifaclly asked:
     async def continue_playing(self, message_reply_to:types.Message=None) -> bool:
         while True:
             if self.start_playing:
