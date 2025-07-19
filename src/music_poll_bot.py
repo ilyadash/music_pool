@@ -23,10 +23,13 @@ class MusicPollBot(AsyncTeleBot):
         pg.mixer.init()
         self.state: str = ""  # in what regime is bot right now
         self.playing: bool = False
-        self.music_directory = env.get_main_music_directory()
+        self.music_main_directory: str = env.get_main_music_directory()
+        self.music_folders: list[str]  = env.get_music_folders(self.music_main_directory)
+        self.music_directory: str = ""
         self.ok_to_convert_extensions: list[str] = [".m4a"]
         self.ok_to_play_extensions: list[str] = [".mp3", ".wav", ".ogg"]
         self.playlist: list[str] = []
+        self.current_folder: str = ""
         self.current_file: str = ""
         self.current_track_number: int = -1
         self.current_volume = pg.mixer.music.get_volume() * 100  # in %
@@ -54,6 +57,13 @@ class MusicPollBot(AsyncTeleBot):
     def update_message_reply_to(self, message:types.Message) -> None:
         if message is not None:
             self.message_reply_to = message
+
+    def get_current_participant(self) -> str:
+        return self.current_folder
+    
+    def set_current_participant(self, participant:str = "") -> None:
+        self.current_folder = participant
+        return 
         
     async def my_reply_to(self, text:str = "") -> types.Message:
         if self.message_reply_to is not None:
@@ -76,7 +86,7 @@ class MusicPollBot(AsyncTeleBot):
             )
 
         if dir == "":
-            dir = self.music_directory
+            dir = self.music_main_directory
 
         if len(files) == 0:
             files = self.playlist

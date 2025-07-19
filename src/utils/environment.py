@@ -9,6 +9,15 @@ def get_bot_token() -> str:
 def get_main_music_directory() -> str:
     return os.environ.get('MUSIC_DIRECTORY','')
 
+def get_music_folders(parent_directory: str) -> list[str]:
+    folders = []
+    elements = os.listdir(parent_directory)
+    for folder in elements:
+        name, extension = os.path.splitext(folder)
+        if extension == "":
+            folders.append(name)
+    return folders
+
 def get_raw_music_playlist(files_directory:str=None) -> list[str]:
     if files_directory is None:
         files_directory = get_main_music_directory()
