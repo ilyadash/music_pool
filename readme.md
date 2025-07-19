@@ -1,5 +1,4 @@
 # Python Music Poll Bot
-======================
 
 ## Overview
 
@@ -32,7 +31,8 @@ pip install -r requirements.txt
 ### Prepare environment
 *   Create your own Telegram bot via @BotFather
 *   Rename file `template.env` to `.env`
-*   Fill `.env` file with required variables for bot (API token is nessesary)
+*   Fill `.env` file with required variables for bot 
+    *   Note: API token and path to folders with music are nessesary variables
 
 ### To run
 To run the Python Music Poll Bot, navigate to the project root directory and execute:
