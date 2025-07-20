@@ -29,7 +29,7 @@ async def send_welcome(message):
     bot.set_volume(50)
     bot.number_of_listeners = await bot.get_chat_member_count(message.chat.id)
     await bot.convert_all_to_mp3(message_reply_to=message)
-    await bot.set_playlist(env.get_raw_music_playlist())
+    bot.update_playlist()
     await bot.reply_to(
         message,
         ("Welcome! I can play music from your local directory.\n"

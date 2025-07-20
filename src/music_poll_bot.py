@@ -7,6 +7,7 @@ import random as rnd
 from tinytag import TinyTag
 import time
 import sys
+import itertools
 
 CURRENT_DIRECTORY: str = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(CURRENT_DIRECTORY, "utils"))
@@ -25,11 +26,11 @@ class MusicPollBot(AsyncTeleBot):
         self.playing: bool = False
         self.music_main_directory: str = env.get_main_music_directory()
         self.music_folders: list[str]  = env.get_music_folders(self.music_main_directory)
-        self.music_directory: str = ""
+        self.cycler_of_participants = itertools.cycle(self.music_folders)
         self.ok_to_convert_extensions: list[str] = [".m4a"]
         self.ok_to_play_extensions: list[str] = [".mp3", ".wav", ".ogg"]
-        self.playlist: list[str] = []
-        self.current_folder: str = ""
+        self.playlist: dict[str:list[list[str], int]] = dict.fromkeys(self.music_folders, [[], -1])
+        self.current_folder: str = self.music_folders[0]
         self.current_file: str = ""
         self.current_track_number: int = -1
         self.current_volume = pg.mixer.music.get_volume() * 100  # in %
@@ -37,7 +38,7 @@ class MusicPollBot(AsyncTeleBot):
         self.track_tags = None
         self.volume_increment = env.get_volume_increment()
         self.start_playing: bool = False
-        self.number_of_participants: int = 0
+        self.number_of_participants: int = len(self.music_folders)
         self.number_of_listeners: int = 0
         self.number_of_administrators: int = 0
         self.votes_to_skip: int = 0
@@ -53,7 +54,29 @@ class MusicPollBot(AsyncTeleBot):
 
     def check_file_exists(self, full_path) -> bool:
         return os.path.exists(full_path) and os.path.isfile(full_path)
+    
+    def check_mp3_of_file_exists(self, full_path) -> bool:
+        path, extension = os.path.splitext(full_path)
+        return self.check_file_exists(path+".mp3")
 
+    def update_playlist(self, new_playlist:dict[str:list[list[str], int]]) -> None:
+        if new_playlist is not None:
+            self.playlist = new_playlist
+        else:
+            self.playlist = dict.fromkeys(self.music_folders, [[], -1])
+            for participant in self.playlist.keys():
+                full_dir_path = os.path.join(self.music_main_directory, participant)
+                for file_name in env.get_raw_music_playlist(full_dir_path):
+                    full_file_path = os.path.join(full_dir_path, file_name)
+                    if self.check_file_exists(full_file_path) and file_name not in self.playlist[participant][0]:
+                        if self.file_is_ok_to_play(file_name):
+                            self.playlist[participant][0].append(file_name)
+                        elif self.file_is_ok_to_convert(file_name):
+                            path, extension = os.path.splitext(full_file_path)
+                            if self.check_mp3_of_file_exists(full_file_path):
+                                self.playlist[participant][0].append(path+".mp3")
+        return
+    
     def update_message_reply_to(self, message:types.Message) -> None:
         if message is not None:
             self.message_reply_to = message
@@ -61,15 +84,25 @@ class MusicPollBot(AsyncTeleBot):
     def get_current_participant(self) -> str:
         return self.current_folder
     
+    def get_next_participant(self) -> str:
+        return next(self.cycler_of_participants)
+    
     def set_current_participant(self, participant:str = "") -> None:
         self.current_folder = participant
         return 
+    
+    def get_current_music_dir(self) -> str:
+        return os.path.join(self.music_main_directory, self.current_folder)
         
     async def my_reply_to(self, text:str = "") -> types.Message:
         if self.message_reply_to is not None:
             return await self.reply_to(self.message_reply_to, text)
 
-    async def convert_to_mp3(self, dir, file, message_reply_to:types.Message=None) -> bool:
+    async def convert_to_mp3(self, dir:str = "", file:str = "", message_reply_to:types.Message=None) -> bool:
+        if dir == "":
+            dir = self.get_current_music_dir()
+        if file == "":  
+            file = self.current_file
         await convert_to_mp3(dir, file)
         self.update_message_reply_to(message_reply_to)
         await self.my_reply_to(f"Converted {file} to mp3")
@@ -77,6 +110,7 @@ class MusicPollBot(AsyncTeleBot):
     async def convert_all_to_mp3(
         self, dir: str = "", files: list[str] = [], message_reply_to:types.Message=None
     ) -> None:
+        #TODO: Fic function to work for several subfolders/participants
         files_to_convert: list[str] = []
         if message_reply_to is not None:
             self.update_message_reply_to(message_reply_to)
@@ -125,21 +159,29 @@ class MusicPollBot(AsyncTeleBot):
         self.shuffled_playlist = True
         rnd.shuffle(self.playlist)
 
-    def file_is_ok(self, file) -> bool:
+    def file_is_ok_to_play(self, file) -> bool:
         is_ok: bool = False
         if str(type(file)) == "<class 'str'>":
             name, extension = os.path.splitext(file)
             if extension in self.ok_to_play_extensions:
                 is_ok = True
         return is_ok
+    
+    def file_is_ok_to_convert(self, file) -> bool:
+        is_ok: bool = False
+        if str(type(file)) == "<class 'str'>":
+            name, extension = os.path.splitext(file)
+            if extension in self.ok_to_convert_extensions:
+                is_ok = True
+        return is_ok
 
-    async def set_playlist(self, list_of_files: list[str] = []) -> None:
-        if len(list_of_files) == 0:
-            return
-        for file in list_of_files:
-            if not self.file_is_ok(file):
-                list_of_files.remove(file)
-        self.playlist = list_of_files
+    #async def set_playlist(self, list_of_files: list[str] = []) -> None:
+    #    if len(list_of_files) == 0:
+    #        return
+    #    for file in list_of_files:
+    #        if not self.file_is_ok_to_play(file):
+    #            list_of_files.remove(file)
+    #    self.playlist = list_of_files
 
     #Start "anew" - play all files possible
     async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:
@@ -170,7 +212,7 @@ class MusicPollBot(AsyncTeleBot):
         if file == "":
             file = self.current_file
         try:
-            pg.mixer.music.load(os.path.join(self.music_directory, file))
+            pg.mixer.music.load(os.path.join(self.music_main_directory, self.current_folder, file))
         except pg.error:
             if message_reply_to is not None:
                 self.update_message_reply_to(message_reply_to)
@@ -184,7 +226,7 @@ class MusicPollBot(AsyncTeleBot):
     async def play(self, file: str = "", message_reply_to:types.Message=None) -> bool:
         self.playing = False
         if file == "":
-            if self.file_is_ok(self.current_file):
+            if self.file_is_ok_to_play(self.current_file):
                 file = self.current_file
             else:
                 file = self.playlist[self.current_track_number]
@@ -253,17 +295,22 @@ class MusicPollBot(AsyncTeleBot):
         self.set_volume(new_volume)
 
     def set_current_file(self, file) -> bool:
-        if self.file_is_ok(file):
+        if self.file_is_ok_to_play(file):
             self.current_file = file
             self.current_track_number = self.playlist.index(file)
-            self.track_tags = TinyTag.get(os.path.join(self.music_directory, file))
+            self.track_tags = TinyTag.get(os.path.join(self.music_main_directory, self.current_folder, file))
             return True
         return False
 
     def get_info_for_current_file(self) -> str:
         info: str = ""
         if self.track_tags is not None:
-            info = f"File name: {self.current_file}\nTitle: {self.track_tags.title}\nArtist: {self.track_tags.artist}\nAlbum: {self.track_tags.album}\nDuration: {time.strftime('%H:%M:%S', time.gmtime(self.track_tags.duration))}\n"
+            info = (f"Participant: {self.get_current_participant()}\n"
+                    f"File name: {self.current_file}\n"
+                    f"Title: {self.track_tags.title}\n"
+                    f"Artist: {self.track_tags.artist}\n"
+                    f"Album: {self.track_tags.album}\n"
+                    f"Duration: {time.strftime('%H:%M:%S', time.gmtime(self.track_tags.duration))}\n")
         return info
 
     async def skip_track(self, message_reply_to:types.Message=None):
