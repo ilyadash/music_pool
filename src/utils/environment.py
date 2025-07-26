@@ -18,6 +18,10 @@ def get_music_folders(parent_directory: str) -> list[str]:
             folders.append(name)
     return folders
 
+def get_files_list_in_dir(files_directory:str) -> list[str]:     
+    files_only = [f for f in os.listdir(files_directory) if os.path.isfile(os.path.join(files_directory, f))]
+    return files_only
+
 def get_raw_music_playlist(files_directory:str=None) -> list[str]:
     if files_directory is None:
         files_directory = get_main_music_directory()
