@@ -153,7 +153,7 @@ class MusicPollBot(AsyncTeleBot):
             if message_reply_to is not None:
                 self.update_message_reply_to(message_reply_to)
                 if len(files_to_convert) == 0:
-                    await self.reply_to(message_reply_to, f"All files in folder {dir} are already in mp3!")
+                    await self.my_reply_to(f"All files in folder {dir} are already in mp3!")
             
             for file_name in files_to_convert:
                 conversion_tasks.append(self.convert_to_mp3(os.path.join(self.music_main_directory, dir), file_name)) # removed message to reply to to avoid flooding of Telegram API. Too many messages reporting about each converted file.
