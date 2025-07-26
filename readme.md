@@ -2,7 +2,7 @@
 
 ## Overview
 
-A Python-based bot for Telegram that holds music polls - listen to music yougathered with freands and learn new genres! 
+A Python3 bot for Telegram that holds music polls - listen to music yougathered with freands and learn new genres! 
 
 Bot utilizes AsyncTeleBot and pydub modules to provide an interactive experience for users. 
 
@@ -16,12 +16,13 @@ Bot utilizes AsyncTeleBot and pydub modules to provide an interactive experience
 
 ## Usage
 
-'Server' here is just a machine where your bot is running and where track to listen are downloaded. 
-Required OS: Windows or Linux.
+'Server' here is just a machine where your bot is running and where track files to listen are stored. 
+Required server OS: Windows or Linux.
 
 ### Installation
 
 *   Download bot files from this repositiry to yoor server, using `git clone` command
+*   Install ffmpeg framework on your server
 *   Install required packages using `pip` in your terminal/powershell:
 
 ```bash
