@@ -9,6 +9,8 @@ import time
 import itertools
 from utils import environment as env
 from utils.convert import convert_to_mp3
+from telebot.util import antiflood
+from telebot.apihelper import ApiTelegramException
 
 
 class MusicPollBot(AsyncTeleBot):
@@ -54,7 +56,7 @@ class MusicPollBot(AsyncTeleBot):
         path, extension = os.path.splitext(full_path)
         return self.check_file_exists(path+".mp3")
 
-    def update_playlist(self, new_playlist:dict[str:list[list[str], int]]) -> None:
+    def update_playlist(self, new_playlist:dict[str:list[list[str], int]]=None) -> None:
         if new_playlist is not None:
             self.playlist = new_playlist
         else:
@@ -88,24 +90,47 @@ class MusicPollBot(AsyncTeleBot):
     
     def get_current_music_dir(self) -> str:
         return os.path.join(self.music_main_directory, self.current_folder)
-        
-    async def my_reply_to(self, text:str = "") -> types.Message:
-        if self.message_reply_to is not None:
-            return await self.reply_to(self.message_reply_to, text)
 
-    async def convert_to_mp3(self, dir:str = "", file:str = "", message_reply_to:types.Message=None) -> bool:
+    async def reply_message_with_retry(self, text, max_retries=3, initial_delay=5):
+        for attempt in range(max_retries):
+            try:
+                msg_sent = await self.reply_to(self.message_reply_to, text)
+                print(f"Message sent successfully on attempt {attempt + 1}")
+                return msg_sent
+            except ApiTelegramException as e:
+                if "Too Many Requests" in str(e): # Example for rate limiting
+                    print(f"Rate limit hit. Retrying in {initial_delay} seconds...")
+                    await asyncio.sleep(initial_delay)
+                    initial_delay *= 2 # Exponential backoff
+                else:
+                    print(f"Telegram API error: {e}. Retrying in {initial_delay} seconds...")
+                    await asyncio.sleep(initial_delay)
+                    initial_delay *= 2
+            except Exception as e: # Catch other potential network errors
+                print(f"An unexpected error occurred: {e}. Retrying in {initial_delay} seconds...")
+                await asyncio.sleep(initial_delay)
+                initial_delay *= 2
+        print(f"Failed to send message after {max_retries} attempts.")
+
+    async def my_reply_to(self, text:str = ""):
+        if self.message_reply_to is not None:
+            #return await antiflood(self.reply_to, self.message_reply_to, text)
+            return await self.reply_message_with_retry(text)
+
+    async def convert_to_mp3(self, dir:str = "", file:str = "", message_reply_to:types.Message=None):
         if dir == "":
             dir = self.get_current_music_dir()
         if file == "":  
             file = self.current_file
+        #await asyncio.sleep(5)
         await convert_to_mp3(dir, file)
         self.update_message_reply_to(message_reply_to)
-        await self.my_reply_to(f"Converted {file} to mp3")
+        await self.my_reply_to(f"Converted file\n{file}\nto mp3")
 
     async def convert_all_to_mp3(
-        self, dir: str = "", files: list[str] = [], message_reply_to:types.Message=None
+        self, message_reply_to:types.Message=None
     ) -> None:
-        #TODO: Fic function to work for several subfolders/participants
+        #TODO: Fix function to work for several subfolders/participants
         files_to_convert: list[str] = []
         if message_reply_to is not None:
             self.update_message_reply_to(message_reply_to)
@@ -114,45 +139,41 @@ class MusicPollBot(AsyncTeleBot):
                 "Converting all files with unacceptable extensions to mp3",
             )
 
-        if dir == "":
-            dir = self.music_main_directory
+        conversion_tasks = []
 
-        if len(files) == 0:
-            files = self.playlist
+        for dir in self.music_folders:
+            files = env.get_files_list_in_dir(os.path.join(self.music_main_directory, dir))
+            files_to_convert = []
+            for file in files:
+                name, extension = os.path.splitext(file)
+                if extension in self.ok_to_convert_extensions:
+                    if not self.check_file_exists(dir + "\\" + name + ".mp3"):
+                        files_to_convert.append(file)
 
-        for file in files:
-            name, extension = os.path.splitext(file)
-            if extension in self.ok_to_convert_extensions:
-                if not self.check_file_exists(dir + "\\" + name + ".mp3"):
-                    files_to_convert.append(file)
+            if message_reply_to is not None:
+                self.update_message_reply_to(message_reply_to)
+                if len(files_to_convert) == 0:
+                    await self.reply_to(message_reply_to, f"All files in folder {dir} are already in mp3!")
+            
+            for file_name in files_to_convert:
+                conversion_tasks.append(self.convert_to_mp3(os.path.join(self.music_main_directory, dir), file_name)) # removed message to reply to to avoid flooding of Telegram API. Too many messages reporting about each converted file.
 
-        if message_reply_to is not None:
-            self.update_message_reply_to(message_reply_to)
-            if len(files_to_convert) == 0:
-                await self.reply_to(message_reply_to, "All files are already in mp3!")
-            else:
-                await self.reply_to(
-                    message_reply_to, "Wait before conversion is ended!"
-                )
-
-        if len(files_to_convert) > 0:
-            conversion_tasks = [
-                self.convert_to_mp3(dir, file_name, message_reply_to)
-                for file_name in files_to_convert
-            ]
-
+        if len(conversion_tasks) > 0:
+            await self.reply_to(
+                message_reply_to, f"{len(conversion_tasks)} files will be converted into mp3. Wait until conversion is ended!"
+            )
             await asyncio.gather(*conversion_tasks, return_exceptions=False)
 
             if message_reply_to is not None:
                 self.update_message_reply_to(message_reply_to)
                 await self.reply_to(
                     message_reply_to,
-                    f"Finished converting {len(files_to_convert)} files to mp3",
+                    f"Finished converting {len(conversion_tasks)} files to mp3",
                 )
 
-    def shuffle_playlist(self) -> None:
-        self.shuffled_playlist = True
-        rnd.shuffle(self.playlist)
+    #def shuffle_playlist(self) -> None:
+    #    self.shuffled_playlist = True
+    #    rnd.shuffle(self.playlist)
 
     def file_is_ok_to_play(self, file) -> bool:
         is_ok: bool = False
@@ -180,8 +201,8 @@ class MusicPollBot(AsyncTeleBot):
 
     #Start "anew" - play all files possible
     async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:
-        if shuffle:
-            self.shuffle_playlist()
+        #if shuffle:
+        #    self.shuffle_playlist()
         if message_reply_to is not None:
             self.update_message_reply_to(message_reply_to)
             await self.reply_to(
