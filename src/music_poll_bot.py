@@ -122,7 +122,7 @@ class MusicPollBot(AsyncTeleBot):
             dir = self.get_current_music_dir()
         if file == "":  
             file = self.current_file
-        #await asyncio.sleep(5)
+        await asyncio.sleep(1)
         await convert_to_mp3(dir, file)
         self.update_message_reply_to(message_reply_to)
         await self.my_reply_to(f"Converted file\n{file}\nto mp3")
