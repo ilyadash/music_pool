@@ -1,12 +1,6 @@
 import asyncio
-import os
 from music_poll_bot import MusicPollBot
-import sys
-
-CURRENT_DIRECTORY: str = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(CURRENT_DIRECTORY, "utils"))
-
-import environment as env
+from utils import environment as env
 
 bot = MusicPollBot(env.get_bot_token())
 

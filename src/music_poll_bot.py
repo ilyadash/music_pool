@@ -6,14 +6,9 @@ import os
 import random as rnd
 from tinytag import TinyTag
 import time
-import sys
 import itertools
-
-CURRENT_DIRECTORY: str = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(CURRENT_DIRECTORY, "utils"))
-
-import environment as env
-from convert import convert_to_mp3
+from utils import environment as env
+from utils.convert import convert_to_mp3
 
 
 class MusicPollBot(AsyncTeleBot):
