@@ -147,7 +147,7 @@ class MusicPollBot(AsyncTeleBot):
             for file in files:
                 name, extension = os.path.splitext(file)
                 if extension in self.ok_to_convert_extensions:
-                    if not self.check_file_exists(dir + "\\" + name + ".mp3"):
+                    if not self.check_file_exists(os.path.join(self.music_main_directory, dir) + "\\" + name + ".mp3"):
                         files_to_convert.append(file)
 
             if message_reply_to is not None:
