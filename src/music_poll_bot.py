@@ -26,6 +26,7 @@ class MusicPollBot(AsyncTeleBot):
         self.ok_to_convert_extensions: list[str] = [".m4a"]
         self.ok_to_play_extensions: list[str] = [".mp3", ".wav", ".ogg"]
         self.playlist: dict[str:list[list[str], int]] = dict.fromkeys(self.music_folders, [[], -1])
+        self.all_files_number = 0
         self.current_folder: str = self.music_folders[0]
         self.current_file: str = ""
         self.current_track_number: int = -1
@@ -87,8 +88,23 @@ class MusicPollBot(AsyncTeleBot):
         self.current_folder = participant
         return 
     
+    def get_current_playlist(self):
+        return self.playlist[self.get_current_participant()][0]
+
+    def get_current_track_number(self) -> int:
+        return self.playlist[self.get_current_participant()][1]
+    
+    def set_current_track_number(self, number: int):
+        self.playlist[self.get_current_participant()][1] = number
+
+    def get_current_track(self) -> int:
+        return self.get_current_playlist()[self.get_current_track_number()]
+
     def get_current_music_dir(self) -> str:
         return os.path.join(self.music_main_directory, self.current_folder)
+    
+    def get_number_of_all_files(self) -> int:
+        return sum([len(self.playlist[folder][0]) for folder in self.playlist])
 
     async def reply_message_with_retry(self, text, max_retries=3, initial_delay=5):
         for attempt in range(max_retries):
@@ -113,7 +129,6 @@ class MusicPollBot(AsyncTeleBot):
 
     async def my_reply_to(self, text:str = ""):
         if self.message_reply_to is not None:
-            #return await antiflood(self.reply_to, self.message_reply_to, text)
             return await self.reply_message_with_retry(text)
 
     async def convert_to_mp3(self, dir:str = "", file:str = "", message_reply_to:types.Message=None):
@@ -187,15 +202,15 @@ class MusicPollBot(AsyncTeleBot):
 
     #Start "anew" - play all files possible
     async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:
-        #if shuffle:
-        #    self.shuffle_playlist()
-        if message_reply_to is not None:
-            self.update_message_reply_to(message_reply_to)
-            await self.reply_to(
-                message_reply_to, f"Files in queue: {len(self.playlist)}"
-            )
-        self.current_track_number = 0
-        await self.play(message_reply_to=message_reply_to)
+        self.set_current_participant(self.music_folders[0]) 
+        self.set_current_track_number(0)
+        if self.set_current_file(self.get_current_track()):
+            if message_reply_to is not None:
+                self.update_message_reply_to(message_reply_to)
+                await self.reply_to(
+                    message_reply_to, f"Files in queue: {self.get_number_of_all_files()}"
+                )
+            await self.play(message_reply_to=message_reply_to)
 
     #Always playing loop for music stop only if specifaclly asked:
     async def continue_playing(self, message_reply_to:types.Message=None) -> bool:
@@ -225,26 +240,21 @@ class MusicPollBot(AsyncTeleBot):
             loaded_file = False
         return loaded_file
 
-    async def play(self, file: str = "", message_reply_to:types.Message=None) -> bool:
+    async def play(self, message_reply_to:types.Message=None) -> bool:
         self.playing = False
-        if file == "":
-            if self.file_is_ok_to_play(self.current_file):
-                file = self.current_file
-            else:
-                file = self.playlist[self.current_track_number]
-        if self.set_current_file(file):
-            if self.load_file(file, message_reply_to):
-                pg.mixer.music.play()
-                self.playing = True
-                self.start_playing = True
-                self.update_message_reply_to(message_reply_to)
-                self.statistics["tracks"]["played"] += 1
-                if self.message_reply_to is not None:
-                    self.last_playing_message = await self.reply_to(
-                        self.message_reply_to,
-                        f"Now playing {self.current_track_number + 1}/{len(self.playlist)}\n"
-                        + self.get_info_for_current_file(),
-                    )
+        loaded_file = await self.load_file(message_reply_to)
+        if loaded_file:
+            pg.mixer.music.play()
+            self.playing = True
+            self.start_playing = True
+            self.update_message_reply_to(message_reply_to)
+            self.statistics["tracks"]["played"] += 1
+            if self.message_reply_to is not None:
+                self.last_playing_message = await self.reply_to(
+                    self.message_reply_to,
+                    f"Now playing {self.current_track_number + 1}/{len(self.playlist[self.get_current_participant][0])}\n"
+                    + self.get_info_for_current_file(),
+                )
         return self.playing
 
     async def pause(self, message_reply_to:types.Message=None) -> None:
@@ -272,9 +282,10 @@ class MusicPollBot(AsyncTeleBot):
             self.reply_to(message_reply_to, "Stopped playing music")
 
     async def play_next(self, message_reply_to:types.Message=None) -> None:
-        self.current_track_number += 1
-        if self.set_current_file(self.playlist[self.current_track_number]):
-            await self.play(self.current_file, message_reply_to=message_reply_to)
+        self.set_current_participant(self.get_next_participant())
+        self.set_current_track_number(self.get_current_track_number() + 1)
+        if self.set_current_file(self.get_current_track()):
+            await self.play(message_reply_to=message_reply_to)
         else:
             if message_reply_to is not None:
                 self.update_message_reply_to(message_reply_to)
@@ -299,7 +310,7 @@ class MusicPollBot(AsyncTeleBot):
     def set_current_file(self, file) -> bool:
         if self.file_is_ok_to_play(file):
             self.current_file = file
-            self.current_track_number = self.playlist.index(file)
+            self.current_track_number = self.get_current_track_number()
             self.track_tags = TinyTag.get(os.path.join(self.music_main_directory, self.current_folder, file))
             return True
         return False
