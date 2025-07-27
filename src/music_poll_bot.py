@@ -171,12 +171,7 @@ class MusicPollBot(AsyncTeleBot):
                     f"Finished converting {len(conversion_tasks)} files to mp3",
                 )
 
-    #def shuffle_playlist(self) -> None:
-    #    self.shuffled_playlist = True
-    #    rnd.shuffle(self.playlist)
-
     def file_is_ok_to_play(self, file) -> bool:
-        is_ok: bool = False
         if str(type(file)) == "<class 'str'>":
             name, extension = os.path.splitext(file)
             if extension in self.ok_to_play_extensions:
@@ -190,14 +185,6 @@ class MusicPollBot(AsyncTeleBot):
             if extension in self.ok_to_convert_extensions:
                 is_ok = True
         return is_ok
-
-    #async def set_playlist(self, list_of_files: list[str] = []) -> None:
-    #    if len(list_of_files) == 0:
-    #        return
-    #    for file in list_of_files:
-    #        if not self.file_is_ok_to_play(file):
-    #            list_of_files.remove(file)
-    #    self.playlist = list_of_files
 
     #Start "anew" - play all files possible
     async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:

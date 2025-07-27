@@ -4,7 +4,6 @@ from utils import environment as env
 
 bot = MusicPollBot(env.get_bot_token())
 
-#TODO: Move all bot initialization that makes sense to __init__ method
 #TODO: Add "authors" who have sent tracks - separate playlists to different directories named by "authors/participants":
 ## Add so every author is heard equally (more or less) *
 #TODO: Fix code on what to do after playlist ends - congratualte, state winner?
