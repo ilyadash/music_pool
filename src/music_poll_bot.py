@@ -9,7 +9,6 @@ import time
 import itertools
 from utils import environment as env
 from utils.convert import convert_to_mp3
-from telebot.util import antiflood
 from telebot.apihelper import ApiTelegramException
 
 
