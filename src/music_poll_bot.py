@@ -161,7 +161,7 @@ class MusicPollBot(AsyncTeleBot):
             for file in files:
                 name, extension = os.path.splitext(file)
                 if extension in self.ok_to_convert_extensions:
-                    if not self.check_file_exists(os.path.join(self.music_main_directory, dir) + "\\" + name + ".mp3"):
+                    if not self.check_file_exists(os.path.join(self.music_main_directory, dir, name + ".mp3")):
                         files_to_convert.append(file)
 
             if message_reply_to is not None:
@@ -189,8 +189,8 @@ class MusicPollBot(AsyncTeleBot):
         if str(type(file)) == "<class 'str'>":
             name, extension = os.path.splitext(file)
             if extension in self.ok_to_play_extensions:
-                is_ok = True
-        return is_ok
+                return True
+        return False
     
     def file_is_ok_to_convert(self, file) -> bool:
         is_ok: bool = False
@@ -224,21 +224,19 @@ class MusicPollBot(AsyncTeleBot):
                     await self.play_next(message_reply_to=message_reply_to)
             await asyncio.sleep(0.1) # Sleep shortly to yield control to event loop (prevent CPU lockup)
     
-    def load_file(self, file: str = "", message_reply_to:types.Message=None) -> bool:
-        loaded_file = True
-        if file == "":
-            file = self.current_file
+    async def load_file(self, message_reply_to:types.Message=None) -> bool:
         try:
-            pg.mixer.music.load(os.path.join(self.music_main_directory, self.current_folder, file))
+            pg.mixer.music.load(os.path.join(self.music_main_directory, self.current_folder, self.current_file))
         except pg.error:
             if message_reply_to is not None:
                 self.update_message_reply_to(message_reply_to)
-                self.reply_to(
+                await self.reply_to(
                     message_reply_to,
-                    f"Could not load the music file. Ensure the file {self.current_file} exists and is a valid format.",
+                    ("Could not load the music file. Ensure the file"
+                     f"{self.current_file} exists and is a valid format.")
                 )
-            loaded_file = False
-        return loaded_file
+            return False
+        return  True
 
     async def play(self, message_reply_to:types.Message=None) -> bool:
         self.playing = False
@@ -273,13 +271,13 @@ class MusicPollBot(AsyncTeleBot):
             self.update_message_reply_to(message_reply_to)
             await self.reply_to(message_reply_to, f"Unpaused: {self.current_file}")
 
-    def stop(self, message_reply_to:types.Message=None) -> None:
+    async def stop(self, message_reply_to:types.Message=None) -> None:
         pg.mixer.music.stop()
         self.playing = False
         self.start_playing = False
         if message_reply_to is not None:
             self.update_message_reply_to(message_reply_to)
-            self.reply_to(message_reply_to, "Stopped playing music")
+            await self.reply_to(message_reply_to, "Stopped playing music")
 
     async def play_next(self, message_reply_to:types.Message=None) -> None:
         self.set_current_participant(self.get_next_participant())
