@@ -69,9 +69,9 @@ class MusicPollBot(AsyncTeleBot):
                         if self.file_is_ok_to_play(file_name):
                             self.playlist[participant][0].append(file_name)
                         elif self.file_is_ok_to_convert(file_name):
-                            path, extension = os.path.splitext(full_file_path)
+                            name, extension = os.path.splitext(file_name)
                             if self.check_mp3_of_file_exists(full_file_path):
-                                self.playlist[participant][0].append(path+".mp3")
+                                self.playlist[participant][0].append(name+".mp3")
         return
     
     def update_message_reply_to(self, message:types.Message) -> None:
