@@ -7,6 +7,7 @@ import random as rnd
 from tinytag import TinyTag
 import time
 import itertools
+import copy
 from utils import environment as env
 from utils.convert import convert_to_mp3
 from telebot.apihelper import ApiTelegramException
@@ -25,7 +26,7 @@ class MusicPollBot(AsyncTeleBot):
         self.cycler_of_participants = itertools.cycle(self.music_folders)
         self.ok_to_convert_extensions: list[str] = [".m4a"]
         self.ok_to_play_extensions: list[str] = [".mp3", ".wav", ".ogg"]
-        self.playlist: dict[str:list[list[str], int]] = dict.fromkeys(self.music_folders, [[], -1])
+        self.playlist: dict[str:list[tuple(str), int]] = dict.fromkeys(self.music_folders, [(), -1])
         self.all_files_number = 0
         self.current_folder: str = self.music_folders[0]
         self.current_file: str = ""
@@ -60,18 +61,23 @@ class MusicPollBot(AsyncTeleBot):
         if new_playlist is not None: # TODO: Fix referencing of keys to the same values
             self.playlist = new_playlist
         else:
-            self.playlist = dict.fromkeys(self.music_folders, [[], -1])
+            initial_playlist_data = [tuple([]), -1]
             for participant in self.playlist.keys():
+                self.playlist[participant][0] = copy.deepcopy([])
+                self.playlist[participant][1] = -1
+            for participant in self.playlist.keys():
+                buffer_playlist = []
                 full_dir_path = os.path.join(self.music_main_directory, participant)
                 for file_name in env.get_raw_music_playlist(full_dir_path):
                     full_file_path = os.path.join(full_dir_path, file_name)
                     if self.check_file_exists(full_file_path) and file_name not in self.playlist[participant][0]:
                         if self.file_is_ok_to_play(file_name):
-                            self.playlist[participant][0].append(file_name)
+                            buffer_playlist.append(file_name)
                         elif self.file_is_ok_to_convert(file_name):
                             name, extension = os.path.splitext(file_name)
                             if self.check_mp3_of_file_exists(full_file_path):
-                                self.playlist[participant][0].append(name+".mp3")
+                                buffer_playlist.append(name+".mp3")
+                self.playlist[participant][0] = tuple(copy.deepcopy(buffer_playlist))
         return
     
     def update_message_reply_to(self, message:types.Message) -> None:
@@ -280,8 +286,8 @@ class MusicPollBot(AsyncTeleBot):
             await self.reply_to(message_reply_to, "Stopped playing music")
 
     async def play_next(self, message_reply_to:types.Message=None) -> None:
-        self.set_current_participant(self.get_next_participant())
         self.set_current_track_number(self.get_current_track_number() + 1)
+        self.set_current_participant(self.get_next_participant())
         if self.set_current_file(self.get_current_track()):
             await self.play(message_reply_to=message_reply_to)
         else:
