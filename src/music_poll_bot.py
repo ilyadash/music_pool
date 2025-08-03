@@ -56,8 +56,8 @@ class MusicPollBot(AsyncTeleBot):
         path, extension = os.path.splitext(full_path)
         return self.check_file_exists(path+".mp3")
 
-    def update_playlist(self, new_playlist:dict[str:list[list[str], int]]=None) -> None:
-        if new_playlist is not None:
+    def update_playlist(self, new_playlist=None) -> None:
+        if new_playlist is not None: # TODO: Fix referencing of keys to the same values
             self.playlist = new_playlist
         else:
             self.playlist = dict.fromkeys(self.music_folders, [[], -1])
