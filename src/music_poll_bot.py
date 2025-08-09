@@ -26,7 +26,7 @@ class MusicPollBot(AsyncTeleBot):
         self.cycler_of_participants = itertools.cycle(self.music_folders)
         self.ok_to_convert_extensions: list[str] = [".m4a"]
         self.ok_to_play_extensions: list[str] = [".mp3", ".wav", ".ogg"]
-        self.playlist: dict[str:list[tuple(str), int]] = dict.fromkeys(self.music_folders, [(), -1])
+        self.playlist: dict[str:list[tuple(str), int]] = {folder: [(), -1] for folder in self.music_folders}
         self.all_files_number = 0
         self.current_folder: str = self.music_folders[0]
         self.current_file: str = ""
