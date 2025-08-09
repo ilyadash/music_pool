@@ -207,7 +207,7 @@ class MusicPollBot(AsyncTeleBot):
 
     #Start "anew" - play all files possible
     async def play_all(self, message_reply_to:types.Message=None, shuffle:bool=False) -> None:
-        self.set_current_participant(self.music_folders[0]) 
+        self.set_current_participant(self.get_next_participant()) 
         self.set_current_track_number(0)
         if self.set_current_file(self.get_current_track()):
             if message_reply_to is not None:
@@ -255,7 +255,7 @@ class MusicPollBot(AsyncTeleBot):
             if self.message_reply_to is not None:
                 self.last_playing_message = await self.reply_to(
                     self.message_reply_to,
-                    f"Now playing {self.current_track_number + 1}/{len(self.playlist[self.get_current_participant()][0])}\n"
+                    f"Now playing {self.get_current_track_number() + 1}/{len(self.playlist[self.get_current_participant()][0])}\n"
                     + self.get_info_for_current_file(),
                 )
         return self.playing
@@ -313,7 +313,7 @@ class MusicPollBot(AsyncTeleBot):
     def set_current_file(self, file) -> bool:
         if self.file_is_ok_to_play(file):
             self.current_file = file
-            self.current_track_number = self.get_current_track_number()
+            self.set_current_track_number(self.get_current_playlist().index(self.current_file))
             self.track_tags = TinyTag.get(os.path.join(self.music_main_directory, self.current_folder, file))
             return True
         return False
