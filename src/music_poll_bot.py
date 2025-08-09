@@ -61,7 +61,6 @@ class MusicPollBot(AsyncTeleBot):
         if new_playlist is not None: # TODO: Fix referencing of keys to the same values
             self.playlist = new_playlist
         else:
-            initial_playlist_data = [tuple([]), -1]
             for participant in self.playlist.keys():
                 self.playlist[participant][0] = copy.deepcopy([])
                 self.playlist[participant][1] = -1
