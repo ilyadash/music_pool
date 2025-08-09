@@ -255,7 +255,7 @@ class MusicPollBot(AsyncTeleBot):
             if self.message_reply_to is not None:
                 self.last_playing_message = await self.reply_to(
                     self.message_reply_to,
-                    f"Now playing {self.current_track_number + 1}/{len(self.playlist[self.get_current_participant][0])}\n"
+                    f"Now playing {self.current_track_number + 1}/{len(self.playlist[self.get_current_participant()][0])}\n"
                     + self.get_info_for_current_file(),
                 )
         return self.playing
