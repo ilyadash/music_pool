@@ -44,6 +44,7 @@ async def send_help(message):
 @bot.message_handler(commands=["play"])
 async def play_music(message):
     await bot.play_all(message, shuffle=True)
+    await bot.send_message(message.chat.id, 'Text', reply_markup=bot.get_keyboard())
 
 
 @bot.message_handler(commands=["pause"])

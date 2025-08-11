@@ -50,6 +50,17 @@ class MusicPollBot(AsyncTeleBot):
             "time_listening": 0
         }
 
+    def get_keyboard(self):
+        markup = types.ReplyKeyboardMarkup(row_width=2)
+        itembtn1 = types.KeyboardButton(r"/skip")
+        itembtn2 = types.KeyboardButton(r"/up")
+        itembtn3 = types.KeyboardButton(r"/down")
+        itembtn4 = types.KeyboardButton(r"/pause")
+        itembtn5 = types.KeyboardButton(r"/unpause")
+        itembtn6 = types.KeyboardButton(r"/stop")
+        markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6)
+        return markup
+
     def check_file_exists(self, full_path) -> bool:
         return os.path.exists(full_path) and os.path.isfile(full_path)
     
