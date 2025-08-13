@@ -125,7 +125,7 @@ class MusicPollBot(AsyncTeleBot):
     async def reply_message_with_retry(self, text, max_retries=3, initial_delay=5):
         for attempt in range(max_retries):
             try:
-                msg_sent = await self.reply_to(self.message_reply_to, text)
+                msg_sent = await self.reply_to(self.message_reply_to, text, reply_markup=self.get_keyboard())
                 print(f"Message sent successfully on attempt {attempt + 1}")
                 return msg_sent
             except ApiTelegramException as e:
